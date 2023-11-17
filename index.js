@@ -1,4 +1,5 @@
-const AppCore = require('./src/App');
-const config = require('./config.json')
+const app = require('./src/App');
 
-new AppCore(config).run();
+app.run().then((app) => {
+    app.use("/", require("./src/router/ConvertStrategyRouter"));
+})
