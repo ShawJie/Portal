@@ -1,0 +1,16 @@
+{
+    "proxys": [
+        {
+            "name": "Shaw-KR-AWS", 
+            "server":"kr.shawpro.club", 
+            "port": 8621, 
+            "type":"http", 
+            "username": "Deligate", 
+            "password": "28GXFc7AV9EgrNWm3mfp", 
+            "tls": true, 
+            "skipCertVerify": true
+        }
+    ],
+    "include": null,
+    "exclude": "(Standard|海外)"
+}
