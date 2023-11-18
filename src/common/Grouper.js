@@ -1,10 +1,18 @@
+class ProxyRule {
+    constructor(type, keyword) {
+        this.type = type;
+        this.keyword = keyword;
+    }
+}
+
 class ProxyGroup {
-    constructor(name, type, filter) {
+    constructor(name, type, filter, rules) {
         this.name = name;
         this.type = type;
         this.filter = filter;
         this.proxies = new Array();
         this.groups = new Array();
+        this.rules = rules;
     }
 
     addProxy(proxy) {
@@ -48,5 +56,6 @@ const defaultGroups = [
 
 module.exports = {
     ProxyGroup,
+    ProxyRule,
     defaultGroups
 }

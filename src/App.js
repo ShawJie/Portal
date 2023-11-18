@@ -1,7 +1,7 @@
 const axios = require('axios');
 const yaml = require('yaml');
 const config = require('../config.json')
-const { defaultGroups, ProxyGroup } = require('./common/Grouper')
+const { defaultGroups, ProxyGroup, ProxyRule } = require('./common/Grouper')
 
 const express = require('express');
 
@@ -10,8 +10,15 @@ class AggregationProxy {
         this.proxies = new Map();
         this.groups = [...defaultGroups];
         if (customGroups) {
-            for (const {groupName, type, proxys} of customGroups) {
-                this.groups.push(new ProxyGroup(groupName, type, new RegExp(proxys)));
+            for (const {groupName, type, proxys, rules} of customGroups) {
+                let wrapperRules = null;
+                if (rules) {
+                    wrapperRules = new Array();
+                    for (const {ruleType, keyword} of rules) {
+                        wrapperRules.push(new ProxyRule(ruleType, keyword));
+                    }
+                }
+                this.groups.push(new ProxyGroup(groupName, type, new RegExp(proxys), wrapperRules));
             }
         }
     }

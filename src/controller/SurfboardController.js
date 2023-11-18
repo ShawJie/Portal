@@ -1,5 +1,4 @@
 const app = require("../App");
-const ini = require("ini");
 
 const surfboardController = async (req, res) => {
     let aggProxy = await app.getProxies();
@@ -18,8 +17,8 @@ const surfboardConfiger = (function() {
         "Proxy": {},
         "Proxy Group": {},
         "Rule": [
+            "FINAL,节点选择",
             "GEOIP,CN,DIRECT",
-            "FINAL,节点选择"
         ]
     };
 
@@ -38,35 +37,27 @@ const surfboardConfiger = (function() {
         return content;
     }
 
-    function fillTemplate(aggreProxy) {
-        let surfboardConfig = clone(surfboardConfigTemplate);
-        let proxies = aggreProxy.proxies;
-        let proxyGroup = aggreProxy.groups;
-
+    function fillTemplateProxies(template, proxies) {
         for (const [key, proxy] of proxies) {
-            let proxyContent = null, name = proxy.name;
+            let proxyContent = null, 
+                {server, port, password} = proxy;
             switch (proxy.type) {
                 case 'ss':
-                    {
-                        let {server, port, cipher, password, udp} = proxy;
-                        let pluginOpts = proxy['plugin-opts'];
-                        proxyContent = `ss, ${server}, ${port}, encrypt-method=${cipher}, password=${password}, udp-relay=${udp}, obfs=http, obfs-host=${pluginOpts.host}`;
-                    }
+                    let {cipher, udp} = proxy;
+                    let pluginOpts = proxy['plugin-opts'];
+                    proxyContent = `ss, ${server}, ${port}, encrypt-method=${cipher}, password=${password}, udp-relay=${udp}, obfs=${pluginOpts.mode}, obfs-host=${pluginOpts.host}`;
                     break;
                 case 'http':
-                    {
-                        let {server, port, username, password, tls, skipCertVerify} = proxy;
-                        proxyContent = `https, ${server}, ${port}, ${username}, ${password}`;
-                        if (tls) {
-                            proxyContent += `, ${skipCertVerify}`;
-                        }
-                    }
+                    let {username} = proxy;
+                    proxyContent = `http, ${server}, ${port}, ${username}, ${password}`;
                     break;
             }
-            surfboardConfig.Proxy[name] = ini.unsafe(proxyContent);
+            template.Proxy[key] = proxyContent;
         }
+    }
 
-        for (const group of proxyGroup) {
+    function fillTemplateGroups(template, groups) {
+        for (const group of groups) {
             let {name, type} = group, groupContent = null;
             switch (type) {
                 case 'url-test':
@@ -76,15 +67,28 @@ const surfboardConfiger = (function() {
                     groupContent = `select, ${processGroup(group.groups, group.proxies)}, DIRECT`;
                     break;
             }
-            surfboardConfig['Proxy Group'][name] = ini.unsafe(groupContent);
+
+            if (group.rules && group.rules.length > 0) {
+                template.Rule.push(...group.rules.map(r => `${r.type},${r.keyword},${name}`));
+            }
+
+            template['Proxy Group'][name] = groupContent;
         }
+    }
+
+    function fillTemplate(aggreProxy) {
+        let surfboardConfig = clone(surfboardConfigTemplate);
+
+        fillTemplateProxies(surfboardConfig, aggreProxy.proxies);
+        fillTemplateGroups(surfboardConfig, aggreProxy.groups);
+        
 
         let configContent = '';
         for (const key in surfboardConfig) {
             let section = surfboardConfig[key];
             configContent += `[${key}]\n`;
             if (Array.isArray(section)) {
-                configContent += section.join('\n');
+                configContent += section.reverse().join('\n');
             } else {
                 for (const key in section) {
                     let value = section[key];
