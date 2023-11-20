@@ -82,7 +82,6 @@ const surfboardConfiger = (function() {
         fillTemplateProxies(surfboardConfig, aggreProxy.proxies);
         fillTemplateGroups(surfboardConfig, aggreProxy.groups);
         
-
         let configContent = '';
         for (const key in surfboardConfig) {
             let section = surfboardConfig[key];

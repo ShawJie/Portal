@@ -54,6 +54,10 @@
                 {
                     "ruleType": "DOMAIN-SUFFIX",
                     "keyword": "openai.com"
+                },
+                {
+                    "ruleType": "DOMAIN-KEYWORD",
+                    "keyword": "oaistatic"
                 }
             ]
         }
