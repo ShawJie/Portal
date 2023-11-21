@@ -1,6 +1,13 @@
 const {domainHost, app} = require("../App");
 const BaseController = require("./BaseController");
 
+const sectionKeyMap = {
+    general: 'General',
+    proxy: 'Proxy',
+    proxyGroup: 'Proxy Group',
+    rule: 'Rule'
+};
+
 class SurfboardConfigSection {
 
     constructor (name) {
@@ -64,7 +71,7 @@ class SufrboardConfig {
 class SurfboardConfigFactory {
 
     static #addGeneralSection() {
-        let section = new SurfboardConfigSection(sectionMap.general);
+        let section = new SurfboardConfigSection(sectionKeyMap.general);
         section.addProperty('dns-server', 'system, 8.8.8.8, 8.8.4.4, 9.9.9.9:9953');
         section.addProperty('skip-proxy', '127.0.0.1, 192.168.0.0/16, 10.0.0.0/8, 172.16.0.0/12, 100.64.0.0/10, 17.0.0.0/8, localhost, *.local, *.crashlytics.com');
         section.addProperty('proxy-test-url', 'http://www.gstatic.com/generate_204');
@@ -73,15 +80,15 @@ class SurfboardConfigFactory {
     }
 
     static #addProxySection() {
-        return new SurfboardConfigSection(sectionMap.proxy);
+        return new SurfboardConfigSection(sectionKeyMap.proxy);
     }
 
     static #addProxyGroupSection() {
-        return new SurfboardConfigSection(sectionMap.proxyGroup);
+        return new SurfboardConfigSection(sectionKeyMap.proxyGroup);
     }
 
     static #addRuleSection() {
-        let ruleSection = new SurfboardConfigSection(sectionMap.rule);
+        let ruleSection = new SurfboardConfigSection(sectionKeyMap.rule);
         ruleSection.addDirectVal("FINAL,节点选择");
         ruleSection.addDirectVal("GEOIP,CN,DIRECT");
         return ruleSection;
@@ -99,13 +106,6 @@ class SurfboardConfigFactory {
 }
 
 class SurfboardController extends BaseController {
-
-    static #sectionMap = {
-        general: 'General',
-        proxy: 'Proxy',
-        proxyGroup: 'Proxy Group',
-        rule: 'Rule'
-    };
 
     constructor() {
         super('surfboard.conf');
@@ -149,7 +149,7 @@ class SurfboardController extends BaseController {
                     }
                     break;
             }
-            layer.getSection(SurfboardController.#sectionMap.proxy).addProperty(key, proxyConfig);
+            layer.getSection(sectionKeyMap.proxy).addProperty(key, proxyConfig);
         }
     }
 
@@ -167,10 +167,10 @@ class SurfboardController extends BaseController {
 
             if (group.rules && group.rules.length > 0) {
                 group.rules.map(r => `${r.type},${r.keyword},${name}`)
-                    .forEach(r => layer.getSection(SurfboardController.#sectionMap.rule).addDirectVal(r));
+                    .forEach(r => layer.getSection(sectionKeyMap.rule).addDirectVal(r));
             }
 
-            layer.getSection(SurfboardController.#sectionMap.proxyGroup).addProperty(name, groupContent);
+            layer.getSection(sectionKeyMap.proxyGroup).addProperty(name, groupContent);
         }
     }
 
@@ -180,7 +180,7 @@ class SurfboardController extends BaseController {
         this.#fillTemplateProxies(surfboardConfig, aggreProxy.proxies);
         this.#fillTemplateGroups(surfboardConfig, aggreProxy.groups);
         
-        surfboardConfig.addComment(`#!MANAGED-CONFIG ${domainHost}/surfboard.conf interval=64800 strict=false`)
+        surfboardConfig.addComment(`#!MANAGED-CONFIG ${domainHost}/surfboard interval=64800 strict=false`)
         return surfboardConfig.generate();
     }
 }
