@@ -1,4 +1,20 @@
+const ProxyGroupType = {
+    URL_TEST: "url-test",
+    SELECT: "select"
+}
+
+const ProxyRuleType = {
+    DOMAIN: "DOMAIN",
+    DOMAIN_SUFFIX: "DOMAIN-SUFFIX",
+    DOMAIN_KEYWORD: "DOMAIN-KEYWORD",
+}
+
 class ProxyRule {
+
+    /**
+     * @param {ProxyRuleType} type 
+     * @param {String} keyword 
+     */
     constructor(type, keyword) {
         this.type = type;
         this.keyword = keyword;
@@ -6,6 +22,14 @@ class ProxyRule {
 }
 
 class ProxyGroup {
+    
+    /**
+     * 
+     * @param {String} name 
+     * @param {ProxyGroupType} type 
+     * @param {Object} filter 
+     * @param {Array} rules 
+     */
     constructor(name, type, filter, rules) {
         this.name = name;
         this.type = type;
@@ -42,16 +66,16 @@ class ProxyGroup {
 }
 
 const defaultGroups = [
-    new ProxyGroup("节点选择", "select")
+    new ProxyGroup("节点选择", ProxyGroupType.SELECT)
         .addGroup('香港节点').addGroup('日本节点')
         .addGroup('美国节点').addGroup('台湾节点')
         .addGroup('新加坡节点').addGroup("手动切换"),
-    new ProxyGroup("手动切换", "select", new RegExp(".*")),
-    new ProxyGroup("香港节点", "url-test", new RegExp("港")),
-    new ProxyGroup("日本节点", "url-test", new RegExp("日")),
-    new ProxyGroup("美国节点", "url-test", new RegExp("美")),
-    new ProxyGroup("台湾节点", "url-test", new RegExp("台")),
-    new ProxyGroup("新加坡节点", "url-test", new RegExp("(新|狮城)")),
+    new ProxyGroup("手动切换", ProxyGroupType.SELECT, new RegExp(".*")),
+    new ProxyGroup("香港节点", ProxyGroupType.URL_TEST, new RegExp("港")),
+    new ProxyGroup("日本节点", ProxyGroupType.URL_TEST, new RegExp("日")),
+    new ProxyGroup("美国节点", ProxyGroupType.URL_TEST, new RegExp("美")),
+    new ProxyGroup("台湾节点", ProxyGroupType.URL_TEST, new RegExp("台")),
+    new ProxyGroup("新加坡节点", ProxyGroupType.URL_TEST, new RegExp("(新|韩国)")),
 ]
 
 module.exports = {

@@ -1,9 +1,11 @@
 const axios = require('axios');
 const yaml = require('yaml');
-const config = require('../config.json')
 const { defaultGroups, ProxyGroup, ProxyRule } = require('./common/Grouper')
-
 const express = require('express');
+const nodeCron = require('node-cron');
+
+const config = require('../config.json');
+
 
 class AggregationProxy {
     constructor({customGroups}) {
@@ -49,12 +51,13 @@ class AggregationProxy {
 class AppCore {
     
     constructor(addOnConfig, port = 8080) {
-        this.configPath = "https://ninjasub.com/link/mXp6ZDSijcNCAHoc?clash=1";
+        this.configPath = addOnConfig.basePath;
         this.aggProxy = new AggregationProxy(addOnConfig);
         this.addOnConfig = addOnConfig;
 
-        this.app = null;
         this.port = port;
+        this.refreshCron = addOnConfig.refreshCron ?? '0 15 3 * * ?';
+        this.server = null;
     }
 
     #isLoaded() {
@@ -113,16 +116,20 @@ class AppCore {
     }
 
     async run() {
-        if (!this.app) {
-            this.app = express();
+        if (!this.server) {
+            this.server = express();
         }
 
         await this.getProxies();
-        const server = this.app.listen(this.port, () => {
+        const server = this.server.listen(this.port, () => {
             let {address, port} = server.address();
             console.log(`service started, domain: http://${address}:${port}`);
         });
-        return this.app;
+
+        nodeCron.schedule(this.refreshCron, async () => {
+            await this.getProxies(true);
+        });
+        return this.server;
     }
 }
 
