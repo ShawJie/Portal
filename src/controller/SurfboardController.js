@@ -1,29 +1,122 @@
-const app = require("../App");
+const {domainHost, app} = require("../App");
+const BaseController = require("./BaseController");
 
-const surfboardController = async (req, res) => {
-    let aggProxy = await app.getProxies();
-    res.writeHead(200, {'Content-Type': 'application/force-download','Content-disposition':'attachment; filename=surfboard.conf'});
-    res.end(surfboardConfiger.fillTemplate(aggProxy));
-};
+class SurfboardController extends BaseController {
+
+    constructor() {
+        super('surfboard.conf');
+    }
+
+    async export() {
+        let aggProxy = await app.getProxies();
+        return surfboardConfiger.fillTemplate(aggProxy);
+    }
+}
 
 const surfboardConfiger = (function() {
-    const surfboardConfigTemplate = {
-        "General": {
-            "dns-server": "system, 8.8.8.8, 8.8.4.4, 9.9.9.9:9953",
-            "skip-proxy": "127.0.0.1, 192.168.0.0/16, 10.0.0.0/8, 172.16.0.0/12, 100.64.0.0/10, 17.0.0.0/8, localhost, *.local, *.crashlytics.com",
-            "proxy-test-url": "http://www.gstatic.com/generate_204",
-            "always-real-ip": "*.srv.nintendo.net, *.stun.playstation.net, xbox.*.microsoft.com, *.xboxlive.com"
-        },
-        "Proxy": {},
-        "Proxy Group": {},
-        "Rule": [
-            "FINAL,节点选择",
-            "GEOIP,CN,DIRECT",
-        ]
-    };
 
-    function clone(obj) {
-        return JSON.parse(JSON.stringify(obj));
+    const sectionMap = {
+        general: 'General',
+        proxy: 'Proxy',
+        proxyGroup: 'Proxy Group',
+        rule: 'Rule'
+    }
+
+    class SurfboardConfigSection {
+
+        constructor (name) {
+            this.name = name;
+            this.properties = new Array();
+        }
+
+        addProperty(key, value) {
+            this.properties.push({key, value});
+        }
+
+        addDirectVal(val) {
+            this.properties.unshift(val);
+        }
+    }
+
+    class SufrboardConfig {
+
+        constructor(sections) {
+            this.sectionMap = new Map();
+            sections.forEach(e => this.sectionMap.set(e.name, e));
+
+            this.sections = sections;
+            this.comment = null;
+        }
+
+        /**
+         * 
+         * @param {sectionMap} name 
+         * @returns 
+         */
+        getSection(name) {
+            return this.sectionMap.get(name);
+        }
+
+        addComment(comment) {
+            this.comment = comment;
+        }
+
+        generate() {
+            let configContent = '';
+            if (this.comment) {
+                configContent += this.comment + '\n\n';
+            }
+
+            for (const section of this.sections) {
+                configContent += `[${section.name}]\n`;
+                for (const property of section.properties) {
+                    if (typeof property === 'string') {
+                        configContent += `${property}\n`;
+                    } else {
+                        configContent += `${property.key} = ${property.value}\n`;
+                    }
+                }
+                configContent += '\n';
+            }
+            return configContent;
+        }
+    }
+
+    class SurfboardConfigFactory {
+
+        static #addGeneralSection() {
+            let section = new SurfboardConfigSection(sectionMap.general);
+            section.addProperty('dns-server', 'system, 8.8.8.8, 8.8.4.4, 9.9.9.9:9953');
+            section.addProperty('skip-proxy', '127.0.0.1, 192.168.0.0/16, 10.0.0.0/8, 172.16.0.0/12, 100.64.0.0/10, 17.0.0.0/8, localhost, *.local, *.crashlytics.com');
+            section.addProperty('proxy-test-url', 'http://www.gstatic.com/generate_204');
+            section.addProperty('always-real-ip', '*.srv.nintendo.net, *.stun.playstation.net, xbox.*.microsoft.com, *.xboxlive.com');
+            return section;
+        }
+
+        static #addProxySection() {
+            return new SurfboardConfigSection(sectionMap.proxy);
+        }
+
+        static #addProxyGroupSection() {
+            return new SurfboardConfigSection(sectionMap.proxyGroup);
+        }
+
+        static #addRuleSection() {
+            let ruleSection = new SurfboardConfigSection(sectionMap.rule);
+            ruleSection.addDirectVal("FINAL,节点选择");
+            ruleSection.addDirectVal("GEOIP,CN,DIRECT");
+            return ruleSection;
+        }
+
+        static newConfigLayer() {
+            let sections = new Array();
+            sections.push(this.#addGeneralSection());
+            sections.push(this.#addProxySection());
+            sections.push(this.#addProxyGroupSection());
+            sections.push(this.#addRuleSection());
+
+            return new SufrboardConfig(sections);
+        }
     }
 
     function processGroup(groups, proxies) {
@@ -37,26 +130,33 @@ const surfboardConfiger = (function() {
         return content;
     }
 
-    function fillTemplateProxies(template, proxies) {
+    /**
+     * 
+     * @param {SufrboardConfig} layer 
+     * @param {any} proxies 
+     */
+    function fillTemplateProxies(layer, proxies) {
         for (const [key, proxy] of proxies) {
-            let proxyContent = null, 
-                {server, port, password} = proxy;
+            let proxyConfig = null, {server, port, password} = proxy;
             switch (proxy.type) {
                 case 'ss':
-                    let {cipher, udp} = proxy;
-                    let pluginOpts = proxy['plugin-opts'];
-                    proxyContent = `ss, ${server}, ${port}, encrypt-method=${cipher}, password=${password}, udp-relay=${udp}, obfs=${pluginOpts.mode}, obfs-host=${pluginOpts.host}`;
+                    proxyConfig = `ss, ${server}, ${port}, encrypt-method=${proxy.cipher}, ` +
+                        `password=${password}, udp-relay=${proxy.udp}, obfs=${proxy['plugin-opts'].mode}, ` + 
+                        `obfs-host=${proxy['plugin-opts'].host}`;
                     break;
                 case 'http':
-                    let {username} = proxy;
-                    proxyContent = `http, ${server}, ${port}, ${username}, ${password}`;
+                    proxyConfig = `${proxy.tls ? 'https' : 'http'}, ${server}, ${port}, ` + 
+                        `${proxy.username}, ${password}`;
+                    if (proxy.tls) {
+                        proxyConfig += `, skip-cert-verify=${proxy.skipCertVerify ?? false}`;
+                    }
                     break;
             }
-            template.Proxy[key] = proxyContent;
+            layer.getSection(sectionMap.proxy).addProperty(key, proxyConfig);
         }
     }
 
-    function fillTemplateGroups(template, groups) {
+    function fillTemplateGroups(layer, groups) {
         for (const group of groups) {
             let {name, type} = group, groupContent = null;
             switch (type) {
@@ -69,34 +169,22 @@ const surfboardConfiger = (function() {
             }
 
             if (group.rules && group.rules.length > 0) {
-                template.Rule.push(...group.rules.map(r => `${r.type},${r.keyword},${name}`));
+                group.rules.map(r => `${r.type},${r.keyword},${name}`)
+                    .forEach(r => layer.getSection(sectionMap.rule).addDirectVal(r));
             }
 
-            template['Proxy Group'][name] = groupContent;
+            layer.getSection(sectionMap.proxyGroup).addProperty(name, groupContent);
         }
     }
 
     function fillTemplate(aggreProxy) {
-        let surfboardConfig = clone(surfboardConfigTemplate);
+        let surfboardConfig = SurfboardConfigFactory.newConfigLayer();
 
         fillTemplateProxies(surfboardConfig, aggreProxy.proxies);
         fillTemplateGroups(surfboardConfig, aggreProxy.groups);
         
-        let configContent = '';
-        for (const key in surfboardConfig) {
-            let section = surfboardConfig[key];
-            configContent += `[${key}]\n`;
-            if (Array.isArray(section)) {
-                configContent += section.reverse().join('\n');
-            } else {
-                for (const key in section) {
-                    let value = section[key];
-                    configContent += `${key} = ${value}\n`;
-                }
-            }
-            configContent += '\n';
-        }
-        return configContent;
+        surfboardConfig.addComment(`#!MANAGED-CONFIG ${domainHost}/surfboard.conf interval=64800 strict=false`)
+        return surfboardConfig.generate();
     }
 
     return {
@@ -104,4 +192,4 @@ const surfboardConfiger = (function() {
     }
 })();
 
-module.exports = surfboardController;
+module.exports = SurfboardController;

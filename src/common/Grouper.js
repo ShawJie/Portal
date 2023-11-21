@@ -67,10 +67,12 @@ class ProxyGroup {
 
 const defaultGroups = [
     new ProxyGroup("节点选择", ProxyGroupType.SELECT)
-        .addGroup('香港节点').addGroup('日本节点')
-        .addGroup('美国节点').addGroup('台湾节点')
-        .addGroup('新加坡节点').addGroup("手动切换"),
+        .addGroup("自动选择").addGroup('香港节点')
+        .addGroup('日本节点').addGroup('美国节点')
+        .addGroup('台湾节点').addGroup('新加坡节点')
+        .addGroup("手动切换"),
     new ProxyGroup("手动切换", ProxyGroupType.SELECT, new RegExp(".*")),
+    new ProxyGroup("自动选择", ProxyGroupType.URL_TEST, new RegExp(".*")),
     new ProxyGroup("香港节点", ProxyGroupType.URL_TEST, new RegExp("港")),
     new ProxyGroup("日本节点", ProxyGroupType.URL_TEST, new RegExp("日")),
     new ProxyGroup("美国节点", ProxyGroupType.URL_TEST, new RegExp("美")),

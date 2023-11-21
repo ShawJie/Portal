@@ -1,6 +1,7 @@
 {
+    "host": "http://127.0.0.1",
     "basePath": "https://ninjasub.com/link/mXp6ZDSijcNCAHoc?clash=1",
-    "refreshCron": "0 30 16 * * ?",
+    "refreshCron": "0 30 16 * * *",
     "proxys": [
         {
             "name": "Premium|韩国|Shaw|01",
@@ -10,7 +11,7 @@
             "username": "Deligate",
             "password": "28GXFc7AV9EgrNWm3mfp",
             "tls": true,
-            "skipCertVerify": true
+            "skipCertVerify": false
         }
     ],
     "include": null,
@@ -19,7 +20,7 @@
         {
             "groupName": "OpenAI",
             "type": "select",
-            "proxys": "(广(台|新)|韩国)",
+            "proxys": "(广台|韩国)",
             "rules": [
                 {
                     "ruleType": "DOMAIN",

@@ -56,7 +56,7 @@ class AppCore {
         this.addOnConfig = addOnConfig;
 
         this.port = port;
-        this.refreshCron = addOnConfig.refreshCron ?? '0 15 3 * * ?';
+        this.refreshCron = addOnConfig.refreshCron ?? '0 15 3 * * *';
         this.server = null;
     }
 
@@ -127,6 +127,7 @@ class AppCore {
         });
 
         nodeCron.schedule(this.refreshCron, async () => {
+            console.info('refreshing proxy list...');
             await this.getProxies(true);
         });
         return this.server;
@@ -134,4 +135,6 @@ class AppCore {
 }
 
 const app = new AppCore(config);
-module.exports = app;
+const domainHost = config.host ?? '';
+
+module.exports = {domainHost, app};

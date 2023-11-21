@@ -1,10 +1,17 @@
-const app = require("../App");
+const {app} = require("../App");
+const BaseController = require("./BaseController");
 
-const singboxController = async (req, res) => {
-    let aggProxy = await app.getProxies();
-    res.writeHead(200, {'Content-Type': 'application/force-download','Content-disposition':'attachment; filename=singbox.json'});
-    res.end(sinboxConfiger.fillTemplate(aggProxy));
-};
+class SingboxController extends BaseController {
+    
+    constructor() {
+        super('singbox.json');
+    }
+
+    async export() {
+        let aggProxy = await app.getProxies();
+        return sinboxConfiger.fillTemplate(aggProxy);
+    }
+}
 
 const sinboxConfiger = (function() {
     const singboxConfigTemplate = {
@@ -165,4 +172,4 @@ const sinboxConfiger = (function() {
     }
 })();
 
-module.exports = singboxController;
+module.exports = SingboxController;
