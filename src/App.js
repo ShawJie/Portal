@@ -85,12 +85,17 @@ class AppCore {
 
     async #loadConfigFromPath() {
         let path = this.configPath;
-        let afterProxy = await axios.get(path).then((res) => {
-            let document = yaml.parse(res.data);
-            return this.#extraClashConfig(document);
-        }).then((proxys) => {
-            return this.#postProcessProxyList(proxys);
-        });
+        let afterProxy = null;
+        if (path) {
+            afterProxy = await axios.get(path).then((res) => {
+                let document = yaml.parse(res.data);
+                return this.#extraClashConfig(document);
+            }).then((proxys) => {
+                return this.#postProcessProxyList(proxys);
+            });
+        } else {
+            afterProxy = this.#postProcessProxyList([]);
+        }
 
         for (const proxy of afterProxy) {
             this.aggProxy.addProxy(proxy);
