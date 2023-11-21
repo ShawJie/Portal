@@ -2,19 +2,8 @@ const {app} = require("../App");
 const BaseController = require("./BaseController");
 
 class SingboxController extends BaseController {
-    
-    constructor() {
-        super('singbox.json');
-    }
 
-    async export() {
-        let aggProxy = await app.getProxies();
-        return sinboxConfiger.fillTemplate(aggProxy);
-    }
-}
-
-const sinboxConfiger = (function() {
-    const singboxConfigTemplate = {
+    static #configTemplate = {
         dns: {
             rules: [
                 {outbound: ["any"], server: "local"}, 
@@ -65,17 +54,22 @@ const sinboxConfiger = (function() {
         }
     };
 
-    const ruleTypeKeyMap = {
+    static #ruleTypeKeyMap = {
         "DOMAIN": "domain",
         "DOMAIN-SUFFIX": "domain_suffix",
         "DOMAIN-KEYWORD": "domain_keyword",
     }
 
-    function clone(obj) {
-        return JSON.parse(JSON.stringify(obj));
+    constructor() {
+        super('singbox.json');
     }
 
-    function processGroup(groups, proxies) {
+    async export() {
+        let aggProxy = await app.getProxies();
+        return this.#fillTemplate(aggProxy);
+    }
+
+    #processGroup(groups, proxies) {
         let outbounds = new Array();
         if (groups && groups.length > 0) {
             outbounds.push(...groups);
@@ -86,7 +80,7 @@ const sinboxConfiger = (function() {
         return outbounds;
     }
 
-    function fillTemplateProxies(template, proxies) {
+    #fillTemplateProxies(template, proxies) {
         for (const [key, proxy] of proxies) {
             let proxyContent = null, 
                 {server, port, password} = proxy;
@@ -122,7 +116,7 @@ const sinboxConfiger = (function() {
         }
     }
 
-    function fillTemplateGroups(template, groups) {
+    #fillTemplateGroups(template, groups) {
         for (const group of groups) {
             let {name, type} = group, groupContent = null;
             switch (type) {
@@ -130,14 +124,14 @@ const sinboxConfiger = (function() {
                     groupContent = {
                         tag: name,
                         type: 'urltest',
-                        outbounds: [...processGroup(group.groups, group.proxies)]
+                        outbounds: [...this.#processGroup(group.groups, group.proxies)]
                     };
                     break;
                 case 'select':
                     groupContent = {
                         tag: name,
                         type: 'selector',
-                        outbounds: [...processGroup(group.groups, group.proxies)]
+                        outbounds: [...this.#processGroup(group.groups, group.proxies)]
                     };
                     break;
             }
@@ -145,7 +139,7 @@ const sinboxConfiger = (function() {
             if (group.rules && group.rules.length > 0) {
                 let subRule = {outbound: name};
                 for (const rule of group.rules) {
-                    let target = ruleTypeKeyMap[rule.type];
+                    let target = SingboxController.#ruleTypeKeyMap[rule.type];
                     if (!subRule[target]) {
                         subRule[target] = new Array();
                     }
@@ -158,18 +152,14 @@ const sinboxConfiger = (function() {
         }
     }
 
-    function fillTemplate(aggreProxy) {
-        let surfboardConfig = clone(singboxConfigTemplate);
+    #fillTemplate(aggreProxy) {
+        let surfboardConfig = super._clone(SingboxController.#configTemplate);
 
-        fillTemplateProxies(surfboardConfig, aggreProxy.proxies);
-        fillTemplateGroups(surfboardConfig, aggreProxy.groups);
+        this.#fillTemplateProxies(surfboardConfig, aggreProxy.proxies);
+        this.#fillTemplateGroups(surfboardConfig, aggreProxy.groups);
         
         return JSON.stringify(surfboardConfig, null, 4);
     }
+}
 
-    return {
-        fillTemplate
-    }
-})();
-
-module.exports = SingboxController;
+module.exports = new SingboxController();
