@@ -180,7 +180,7 @@ class SurfboardConverter extends BaseConverter {
         this.#fillTemplateProxies(surfboardConfig, aggreProxy.proxies);
         this.#fillTemplateGroups(surfboardConfig, aggreProxy.groups);
         
-        surfboardConfig.addComment(`#!MANAGED-CONFIG ${domainHost}/${super.outputName} interval=64800 strict=false`)
+        surfboardConfig.addComment(`#!MANAGED-CONFIG ${domainHost}/${super.getOutputName()} interval=64800 strict=false`)
         return surfboardConfig.generate();
     }
 }

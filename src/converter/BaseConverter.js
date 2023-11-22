@@ -4,6 +4,10 @@ class BaseConverter {
         this.outputName = outputName;
     }
 
+    getOutputName() {
+        return this.outputName;
+    }
+
     async export() {
         throw new Error('You have to implement the method doSomething!');
     }
