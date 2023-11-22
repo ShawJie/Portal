@@ -1,8 +1,8 @@
 const yaml = require('yaml');
-const BaseController = require("./BaseController");
+const BaseConverter = require("./BaseConverter");
 const { app } = require("../App");
 
-class ClashController extends BaseController {
+class ClashConverter extends BaseConverter {
 
     static #autoRouter = {
         url: 'http://www.gstatic.com/generate_204',
@@ -86,8 +86,8 @@ class ClashController extends BaseController {
             };
 
             if (group.type === 'url-test') {
-                groupContent.url = ClashController.#autoRouter.url;
-                groupContent.interval = ClashController.#autoRouter.interval;
+                groupContent.url = ClashConverter.#autoRouter.url;
+                groupContent.interval = ClashConverter.#autoRouter.interval;
             }
 
             template.proxyGroups.push(groupContent);
@@ -100,7 +100,7 @@ class ClashController extends BaseController {
     }
 
     #fillTemplate(aggreProxy) {
-        let clashConfig = super._clone(ClashController.#clashConfigTemplate);
+        let clashConfig = super._clone(ClashConverter.#clashConfigTemplate);
 
         this.#fillTemplateProxies(clashConfig, aggreProxy.proxies);
         this.#fillTemplateGroups(clashConfig, aggreProxy.groups);
@@ -113,4 +113,4 @@ class ClashController extends BaseController {
     }
 }
 
-module.exports = new ClashController();
+module.exports = new ClashConverter();

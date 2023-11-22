@@ -1,6 +1,6 @@
 const axios = require('axios');
 const yaml = require('yaml');
-const { defaultGroups, ProxyGroup, ProxyRule } = require('./common/Grouper')
+const { defaultGroups, ProxyGroup, ProxyRule } = require('./entry/Grouper')
 const express = require('express');
 const nodeCron = require('node-cron');
 

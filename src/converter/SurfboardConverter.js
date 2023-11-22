@@ -1,5 +1,5 @@
 const {domainHost, app} = require("../App");
-const BaseController = require("./BaseController");
+const BaseConverter = require("./BaseConverter");
 
 const sectionKeyMap = {
     general: 'General',
@@ -105,7 +105,7 @@ class SurfboardConfigFactory {
     }
 }
 
-class SurfboardController extends BaseController {
+class SurfboardConverter extends BaseConverter {
 
     constructor() {
         super('surfboard.conf');
@@ -185,4 +185,4 @@ class SurfboardController extends BaseController {
     }
 }
 
-module.exports = new SurfboardController();
+module.exports = new SurfboardConverter();

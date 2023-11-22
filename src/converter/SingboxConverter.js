@@ -1,7 +1,8 @@
-const {app} = require("../App");
-const BaseController = require("./BaseController");
+const { app } = require("../App");
+const BaseConverter = require("./BaseConverter");
+const { proxyGroupType } = require("../entry/Grouper")
 
-class SingboxController extends BaseController {
+class SingboxConverter extends BaseConverter {
 
     static #configTemplate = {
         dns: {
@@ -120,14 +121,14 @@ class SingboxController extends BaseController {
         for (const group of groups) {
             let {name, type} = group, groupContent = null;
             switch (type) {
-                case 'url-test':
+                case proxyGroupType.URL_TEST:
                     groupContent = {
                         tag: name,
                         type: 'urltest',
                         outbounds: [...this.#processGroup(group.groups, group.proxies)]
                     };
                     break;
-                case 'select':
+                case proxyGroupType.SELECT:
                     groupContent = {
                         tag: name,
                         type: 'selector',
@@ -139,7 +140,7 @@ class SingboxController extends BaseController {
             if (group.rules && group.rules.length > 0) {
                 let subRule = {outbound: name};
                 for (const rule of group.rules) {
-                    let target = SingboxController.#ruleTypeKeyMap[rule.type];
+                    let target = SingboxConverter.#ruleTypeKeyMap[rule.type];
                     if (!subRule[target]) {
                         subRule[target] = new Array();
                     }
@@ -153,7 +154,7 @@ class SingboxController extends BaseController {
     }
 
     #fillTemplate(aggreProxy) {
-        let surfboardConfig = super._clone(SingboxController.#configTemplate);
+        let surfboardConfig = super._clone(SingboxConverter.#configTemplate);
 
         this.#fillTemplateProxies(surfboardConfig, aggreProxy.proxies);
         this.#fillTemplateGroups(surfboardConfig, aggreProxy.groups);
@@ -162,4 +163,4 @@ class SingboxController extends BaseController {
     }
 }
 
-module.exports = new SingboxController();
+module.exports = new SingboxConverter();

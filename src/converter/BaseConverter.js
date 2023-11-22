@@ -1,4 +1,4 @@
-class BaseController {
+class BaseConverter {
     
     constructor(outputName) {
         this.outputName = outputName;
@@ -17,4 +17,4 @@ class BaseController {
     }
 }
 
-module.exports = BaseController;
+module.exports = BaseConverter;

@@ -84,5 +84,6 @@ module.exports = {
     ProxyGroup,
     ProxyRule,
     proxyRuleType,
+    proxyGroupType,
     defaultGroups
 }
