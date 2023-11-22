@@ -1,3 +1,5 @@
+const logger = require('../Logger');
+
 class RequestHandlerChain {
 
     constructor() {
@@ -29,9 +31,8 @@ class RequestHandlerChain {
         try {
             doHandle();
         } catch (err) {
-            console.error(err);
+            logger.error(err);
             res.status(500).end();
-        
         }
     }
 }

@@ -1,10 +1,11 @@
 const {RequestHandler} = require("../ConvertRequestHandler");
+const logger = require("../../Logger");
 
 class LogRequestHandler extends RequestHandler {
     
     async handle(req, res, next) {
         let ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress   
-        console.info(`request info: ${req.url}, client address: ${ip}`);
+        logger.info(`request info: ${req.url}, client address: ${ip}`);
         next();
     }
 }

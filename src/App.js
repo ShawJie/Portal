@@ -3,6 +3,7 @@ const yaml = require('yaml');
 const { defaultGroups, ProxyGroup, ProxyRule } = require('./entry/Grouper')
 const express = require('express');
 const nodeCron = require('node-cron');
+const logger = require('./Logger');
 
 const config = require('../config.json');
 
@@ -128,12 +129,13 @@ class AppCore {
         await this.getProxies();
         const server = this.server.listen(this.port, () => {
             let {address, port} = server.address();
-            console.log(`service started, domain: http://${address}:${port}`);
+            logger.info(`service started, domain: http://${address}:${port}`);
         });
 
         nodeCron.schedule(this.refreshCron, async () => {
-            console.info('refreshing proxy list...');
+            logger.info('refreshing proxy list...');
             await this.getProxies(true);
+            logger.info('refreshing proxy list finished');
         });
         return this.server;
     }
