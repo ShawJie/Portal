@@ -12,7 +12,7 @@ class AccessControlHandler extends RequestHandler {
         }
 
         if (!req.headers.authorization || req.headers.authorization.indexOf('Basic ') === -1) {
-            this.#logger.warn("Missing Authorization Header", req.headers);
+            this.#logger.warn("Missing Authorization Header, %o", req.headers);
             return res.status(401).json({ message: 'Missing Authorization Header' });
         }
     
@@ -20,7 +20,7 @@ class AccessControlHandler extends RequestHandler {
         const base64Credentials =  req.headers.authorization.split(' ')[1];
         const credentials = Buffer.from(base64Credentials, 'base64').toString('ascii');
         if (!app.inAccessSet(credentials)) {
-            this.#logger.warn("Access Denied", credentials);
+            this.#logger.warn("Access Denied, %s", credentials);
             return res.status(403).json({ message: 'Access Denied' });
         }
 
