@@ -1,8 +1,6 @@
 {
     "host": "<DOMAIN REQUEST HOST>",
-    "accessSet": [
-        "username:password"
-    ],
+    "accessControl": false,
     "basePath": "<YOUR CLASH SUBSCRIBE PAHT>",
     "refreshCron": "<SUBSCRIBE REFRESH CRON>",
     "proxys": [
