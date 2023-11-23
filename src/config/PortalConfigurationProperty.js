@@ -2,11 +2,14 @@ class PortalConfigurationProperty {
 
     constructor(configResource) {
         let { 
-            host, basePath, accessSet, refreshCron = "0 15 3 * * *", 
-            proxys, include, exclude, 
-            customGroups } = configResource;
+            host = "http://localhost:8080", 
+            basePath,
+            accessControl = false, 
+            refreshCron = "0 15 3 * * *", 
+            proxys = [], include, exclude, 
+            customGroups = [] } = configResource;
         this.host = host;
-        this.accessSet = new Set(accessSet ?? []);
+        this.accessControl = accessControl;
         this.basePath = basePath;
         this.refreshCron = refreshCron;
         this.proxys = proxys;

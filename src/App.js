@@ -1,6 +1,7 @@
 const { URL } = require('url');
 const axios = require('axios');
 const yaml = require('yaml');
+const fs = require('fs');
 const nodeCron = require('node-cron');
 const logger = require('./Logger');
 const config = require('../config.json');
@@ -18,6 +19,7 @@ class AppCore {
 
         this.property = property;
         this.aggProxy = aggProxy;
+        this.accessControlMap = null;
 
         this.port = port;
         this.server = null;
@@ -38,11 +40,21 @@ class AppCore {
     }
 
     accessControl() {
-        return this.property.accessSet.size > 0;
+        return this.property.accessControl;
     }
 
-    inAccessSet(decrypt) {
-        return this.property.accessSet.has(decrypt);
+    #refreshAccessControlMap() {
+        let htpasswdResource = fs.readFileSync(".htpasswd", "utf-8")
+            .split(/\r?\n/).map(line => line.split(":"))
+            .reduce((map, [user, pass]) => map.set(user, pass), new Map());
+        this.accessControlMap = htpasswdResource;
+    }
+
+    inAccessSet({username, password}) {        
+        if (this.accessControlMap.has(username)) {
+            return password === this.accessControlMap.get(username);
+        }
+        return false;
     }
 
     #isLoaded() {
@@ -117,6 +129,15 @@ class AppCore {
             await this.getProxies(true);
             logger.info('refreshing proxy list finished');
         });
+
+        if (this.property.accessControl) {
+            logger.info('access control enabled');
+            this.#refreshAccessControlMap();
+            fs.watchFile('.htpasswd', () => {
+                logger.info('htpasswd file changed, refreshing access control map...');
+                this.#refreshAccessControlMap();
+            });
+        }
         return this.server;
     }
 }

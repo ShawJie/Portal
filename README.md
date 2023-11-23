@@ -8,10 +8,8 @@
 {
     // project domain host
     "host": "<DOMAIN REQUEST HOST>",
-    // basic auth (optional)
-    "accessSet": [
-        "username:password"
-    ],
+    // basic auth (optional, require .htpaasswd file)
+    "accessControl": false,
     // clash subscribe url as base url
     "basePath": "<YOUR CLASH SUBSCRIBE PAHT>",
     // subscribe refresh cron expression

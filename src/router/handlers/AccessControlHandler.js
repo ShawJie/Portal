@@ -19,13 +19,15 @@ class AccessControlHandler extends RequestHandler {
         // verify auth credentials
         const base64Credentials =  req.headers.authorization.split(' ')[1];
         const credentials = Buffer.from(base64Credentials, 'base64').toString('ascii');
-        if (!app.inAccessSet(credentials)) {
+
+        const [username, password] = credentials.split(':');
+        const accessUser = {username, password};
+        if (!app.inAccessSet(accessUser)) {
             this.#logger.warn("Access Denied, %s", credentials);
             return res.status(403).json({ message: 'Access Denied' });
         }
 
-        const [username, password] = credentials.split(':');
-        req.accessUser = {username, password};
+        req.accessUser = accessUser;
         next();
     }
 }
