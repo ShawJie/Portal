@@ -1,0 +1,36 @@
+{
+    "host": "<DOMAIN REQUEST HOST>",
+    "basePath": "<YOUR CLASH SUBSCRIBE PAHT>",
+    "refreshCron": "<SUBSCRIBE REFRESH CRON>",
+    "proxys": [
+        {
+            "name": "<CUSTOM PROXY NAME>",
+            "server": "<PROXY SERVER>",
+            "port": 1234,
+            "type": "<PROXY TYPE>"
+        }
+    ],
+    "include": null,
+    "exclude": "<EXCLUDE NODE WITH REGEX>",
+    "customGroups": [
+        {
+            "groupName": "<CUSTOM GROUP NAME>",
+            "type": "<GROUP ACTON TYPE>",
+            "proxys": "<MATCHED PROXY NAME WITH REGEX>",
+            "rules": [
+                {
+                    "ruleType": "DOMAIN",
+                    "keyword": "chat.openai.com.cdn.cloudflare.net"
+                },
+                {
+                    "ruleType": "DOMAIN-SUFFIX",
+                    "keyword": "openai.com"
+                },
+                {
+                    "ruleType": "DOMAIN-KEYWORD",
+                    "keyword": "oaistatic"
+                }
+            ]
+        }
+    ]
+}

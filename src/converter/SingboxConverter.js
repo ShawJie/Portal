@@ -1,4 +1,4 @@
-const { app } = require("../App");
+const app = require("../App");
 const BaseConverter = require("./BaseConverter");
 const { proxyGroupType } = require("../entry/Grouper")
 

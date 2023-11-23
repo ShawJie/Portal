@@ -1,4 +1,4 @@
-const {app} = require('./src/App');
+const app = require('./src/App');
 const logger = require('./src/Logger');
 
 app.run().then((app) => {

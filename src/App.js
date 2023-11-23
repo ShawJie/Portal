@@ -1,64 +1,37 @@
 const axios = require('axios');
 const yaml = require('yaml');
-const { defaultGroups, ProxyGroup, ProxyRule } = require('./entry/Grouper')
-const express = require('express');
 const nodeCron = require('node-cron');
 const logger = require('./Logger');
-
 const config = require('../config.json');
 
+const express = require('express');
 
-class AggregationProxy {
-    constructor({customGroups}) {
-        this.proxies = new Map();
-        this.groups = [...defaultGroups];
-        if (customGroups) {
-            for (const {groupName, type, proxys, rules} of customGroups) {
-                let wrapperRules = null;
-                if (rules) {
-                    wrapperRules = new Array();
-                    for (const {ruleType, keyword} of rules) {
-                        wrapperRules.push(new ProxyRule(ruleType, keyword));
-                    }
-                }
-                this.groups.push(new ProxyGroup(groupName, type, new RegExp(proxys), wrapperRules));
-            }
-        }
-    }
-
-    addProxy(proxy) {
-        if (this.proxies.has(proxy.name)) {
-            return;
-        }
-
-        this.proxies.set(proxy.name, proxy);
-        this.groups.forEach((group) => {
-            group.addProxy(proxy);
-        });
-    }
-
-    refresh() {
-        this.proxies.clear();
-        this.groups.forEach((group) => {
-            group.clear();
-        });
-    }
-
-    isEmpty() {
-        return this.proxies.size == 0;
-    }
-}
+const AggregationProxy = require('./entry/AggergationProxy');
+const PortalConfigurationProperty = require('./config/PortalConfigurationProperty');
 
 class AppCore {
     
     constructor(addOnConfig, port = 8080) {
-        this.configPath = addOnConfig.basePath;
-        this.aggProxy = new AggregationProxy(addOnConfig);
-        this.addOnConfig = addOnConfig;
+        let property = new PortalConfigurationProperty(addOnConfig);
+        let aggProxy = new AggregationProxy(property);
+
+        this.property = property;
+        this.aggProxy = aggProxy;
 
         this.port = port;
-        this.refreshCron = addOnConfig.refreshCron ?? '0 15 3 * * *';
         this.server = null;
+    }
+
+    getDomainHost() {
+        return this.property.host;
+    }
+
+    inAccessSet(decrypt) {
+        if (this.property.accessSet.size == 0) {
+            return true;
+        }
+
+        return this.property.accessSet.has(decrypt);
     }
 
     #isLoaded() {
@@ -66,11 +39,7 @@ class AppCore {
     }
 
     #postProcessProxyList(pulledProxies) {
-        if (!this.addOnConfig) {
-            return;
-        }
-        
-        let {proxys, include, exclude} = this.addOnConfig;
+        let {proxys, include, exclude} = this.property;
         let filterLogic = ({name}) => {
             if (include) {
                 return new RegExp(include).test(name);
@@ -85,7 +54,7 @@ class AppCore {
     }
 
     async #loadConfigFromPath() {
-        let path = this.configPath;
+        let path = this.property.basePath;
         let afterProxy = null;
         if (path) {
             afterProxy = await axios.get(path).then((res) => {
@@ -132,7 +101,7 @@ class AppCore {
             logger.info(`service started, domain: http://${address}:${port}`);
         });
 
-        nodeCron.schedule(this.refreshCron, async () => {
+        nodeCron.schedule(this.property.refreshCron, async () => {
             logger.info('refreshing proxy list...');
             await this.getProxies(true);
             logger.info('refreshing proxy list finished');
@@ -142,6 +111,4 @@ class AppCore {
 }
 
 const app = new AppCore(config);
-const domainHost = config.host ?? '';
-
-module.exports = {domainHost, app};
+module.exports = app;

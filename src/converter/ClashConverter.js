@@ -1,6 +1,6 @@
 const yaml = require('yaml');
+const app = require("../App");
 const BaseConverter = require("./BaseConverter");
-const { app } = require("../App");
 
 class ClashConverter extends BaseConverter {
 
