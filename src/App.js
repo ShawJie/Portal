@@ -44,7 +44,7 @@ class AppCore {
     }
 
     #refreshAccessControlMap() {
-        let htpasswdResource = fs.readFileSync(".htpasswd", "utf-8")
+        let htpasswdResource = fs.readFileSync("auth/.htpasswd", "utf-8")
             .split(/\r?\n/).filter(line => line.trim() != '')
             .map(line => line.split(":"))
             .map(([user, pass]) => [user, pass.trim()])
@@ -122,6 +122,10 @@ class AppCore {
     async run() {
         if (!this.server) {
             this.server = express();
+        }
+
+        if (!this.property.logLevel !== 'info') {
+            logger.level = this.property.logLevel;
         }
 
         await this.getProxies();
