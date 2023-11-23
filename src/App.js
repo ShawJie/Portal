@@ -45,12 +45,12 @@ class AppCore {
 
     #refreshAccessControlMap() {
         let htpasswdResource = fs.readFileSync(".htpasswd", "utf-8")
-            .split(/\r?\n/).filter(ca => ca.length > 0)
+            .split(/\r?\n/).filter(line => line.trim() != '')
             .map(line => line.split(":"))
             .map(([user, pass]) => [user, pass.trim()])
             .reduce((map, [user, pass]) => map.set(user, pass), new Map());
         this.accessControlMap = htpasswdResource;
-        logger.info('access control map refreshed, %o', this.accessControlMap);
+        logger.info('access control map refreshed');
     }
 
     inAccessSet({username, password}) {        
