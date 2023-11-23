@@ -18,7 +18,7 @@ class OutputFileHandler extends RequestHandler {
             'Content-disposition': `attachment;filename=${this.converter.getOutputName()}`
         };
         res.writeHead(200, downloadContentType);
-        res.end(await this.converter.export());
+        res.end(await this.converter.export(req.accessUser));
     }
 }
 

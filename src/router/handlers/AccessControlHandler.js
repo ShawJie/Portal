@@ -19,8 +19,8 @@ class AccessControlHandler extends RequestHandler {
             return res.status(403).json({ message: 'Access Denied' });
         }
 
-        const [username] = credentials.split(':');
-        req.accessUser = username;
+        const [username, password] = credentials.split(':');
+        req.accessUser = {username, password};
         next();
     }
 }

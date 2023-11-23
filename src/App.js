@@ -1,3 +1,4 @@
+const { URL } = require('url');
 const axios = require('axios');
 const yaml = require('yaml');
 const nodeCron = require('node-cron');
@@ -24,6 +25,16 @@ class AppCore {
 
     getDomainHost() {
         return this.property.host;
+    }
+
+    getDomainHostWithAuth(userinfo) {
+        let domainUrl = new URL(this.property.host);
+        if (userinfo) {
+            domainUrl.username = userinfo.username;
+            domainUrl.password = userinfo.password;
+        }
+        
+        return domainUrl.toString();
     }
 
     accessControl() {

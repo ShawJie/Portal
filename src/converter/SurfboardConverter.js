@@ -111,9 +111,9 @@ class SurfboardConverter extends BaseConverter {
         super('surfboard.conf');
     }
 
-    async export() {
+    async export(userinfo) {
         let aggProxy = await app.getProxies();
-        return this.#fillTemplate(aggProxy);
+        return this.#fillTemplate(aggProxy, userinfo);
     }
 
     #processGroup(groups, proxies) {
@@ -174,13 +174,13 @@ class SurfboardConverter extends BaseConverter {
         }
     }
 
-    #fillTemplate(aggreProxy) {
+    #fillTemplate(aggreProxy, userinfo) {
         let surfboardConfig = SurfboardConfigFactory.newConfigLayer();
 
         this.#fillTemplateProxies(surfboardConfig, aggreProxy.proxies);
         this.#fillTemplateGroups(surfboardConfig, aggreProxy.groups);
         
-        surfboardConfig.addComment(`#!MANAGED-CONFIG ${app.getDomainHost()}/surfboard interval=64800 strict=false`)
+        surfboardConfig.addComment(`#!MANAGED-CONFIG ${app.getDomainHostWithAuth(userinfo)}/surfboard interval=64800 strict=false`)
         return surfboardConfig.generate();
     }
 }

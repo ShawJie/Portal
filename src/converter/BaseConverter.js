@@ -8,7 +8,7 @@ class BaseConverter {
         return this.outputName;
     }
 
-    async export() {
+    async export(userinfo) {
         throw new Error('You have to implement the method doSomething!');
     }
 

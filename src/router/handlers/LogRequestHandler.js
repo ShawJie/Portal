@@ -7,7 +7,7 @@ class LogRequestHandler extends RequestHandler {
 
     async handle(req, res, next) {
         let ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress   
-        this.#logger.info(`request info: "${req.url}", client address: "${ip}", user: "${req.accessUser}"`);
+        this.#logger.info(`request info: '${req.url}', client address: '${ip}', user: '${req.accessUser?.username}'`);
         next();
     }
 }
