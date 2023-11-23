@@ -4,6 +4,10 @@ const app = require("../../App");
 class AccessControlHandler extends RequestHandler {
 
     handle(req, res, next) {
+        if (!app.accessControl()) {
+            return next();
+        }
+
         if (!req.headers.authorization || req.headers.authorization.indexOf('Basic ') === -1) {
             return res.status(401).json({ message: 'Missing Authorization Header' });
         }

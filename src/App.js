@@ -26,11 +26,11 @@ class AppCore {
         return this.property.host;
     }
 
-    inAccessSet(decrypt) {
-        if (this.property.accessSet.size == 0) {
-            return true;
-        }
+    accessControl() {
+        return this.property.accessSet.size > 0;
+    }
 
+    inAccessSet(decrypt) {
         return this.property.accessSet.has(decrypt);
     }
 

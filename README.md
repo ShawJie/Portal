@@ -7,73 +7,45 @@
 ```json
 {
     // project domain host
-    "host": "http://127.0.0.1:8080",
+    "host": "<DOMAIN REQUEST HOST>",
+    // basic auth (optional)
+    "accessSet": [
+        "username:password"
+    ],
     // clash subscribe url as base url
-    "basePath": "https://ninjasub.com/link/mXp6ZDSijcNCAHoc?clash=1",
+    "basePath": "<YOUR CLASH SUBSCRIBE PAHT>",
     // subscribe refresh cron expression
-    "refreshCron": "0 30 16 * * *",
+    "refreshCron": "<SUBSCRIBE REFRESH CRON>",
     // customize proxies, clash config format
     "proxys": [
         {
             // proxy name
-            "name": "Premium|韩国|Shaw|01",
+            "name": "<CUSTOM PROXY NAME>",
             // proxy server
-            "server": "kr.shawpro.club",
+            "server": "<PROXY SERVER>",
             // proxy server port
-            "port": 8621,
+            "port": 1234,
             // proxy type
-            "type": "http",
+            "type": "<PROXY TYPE>"
             // other proxy config...
-            "username": "Deligate",
-            "password": "28GXFc7AV9EgrNWm3mfp",
-            "tls": true,
-            "skipCertVerify": false
         }
     ],
     // include proxy with regex
     "include": null,
     // exclude proxy with regex
-    "exclude": "(Standard|海外)",
+    "exclude": "<EXCLUDE NODE WITH REGEX>",
     // custom proxy groups, clash group format, and group within any rules
     "customGroups": [
         {
-            "groupName": "OpenAI",
+            "groupName": "<CUSTOM GROUP NAME>",
             // type support select, url-test
-            "type": "select",
+            "type": "<GROUP ACTON TYPE>",
             // target proxies in groups
-            "proxys": "(广台|韩国)",
+            "proxys": "<MATCHED PROXY NAME WITH REGEX>",
             "rules": [
                 {
                     "ruleType": "DOMAIN",
                     "keyword": "chat.openai.com.cdn.cloudflare.net"
-                },
-                {
-                    "ruleType": "DOMAIN",
-                    "keyword": "openaiapi-site.azureedge.net"
-                },
-                {
-                    "ruleType": "DOMAIN",
-                    "keyword": "openaicom-api-bdcpf8c6d2e9atf6.z01.azurefd.net"
-                },
-                {
-                    "ruleType": "DOMAIN",
-                    "keyword": "openaicomproductionae4b.blob.core.windows.net"
-                },
-                {
-                    "ruleType": "DOMAIN",
-                    "keyword": "production-openaicom-storage.azureedge.net"
-                },
-                {
-                    "ruleType": "DOMAIN",
-                    "keyword": "o33249.ingest.sentry.io"
-                },
-                {
-                    "ruleType": "DOMAIN",
-                    "keyword": "openaicom.imgix.net"
-                },
-                {
-                    "ruleType": "DOMAIN-SUFFIX",
-                    "keyword": "ai.com"
                 },
                 {
                     "ruleType": "DOMAIN-SUFFIX",
