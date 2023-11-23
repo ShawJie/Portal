@@ -13,6 +13,8 @@ const PortalConfigurationProperty = require('./config/PortalConfigurationPropert
 
 class AppCore {
     
+    static #basicAuthFilePath = "auth/.htpasswd";
+
     constructor(addOnConfig, port = 8080) {
         let property = new PortalConfigurationProperty(addOnConfig);
         let aggProxy = new AggregationProxy(property);
@@ -44,7 +46,7 @@ class AppCore {
     }
 
     #refreshAccessControlMap() {
-        let htpasswdResource = fs.readFileSync("auth/.htpasswd", "utf-8")
+        let htpasswdResource = fs.readFileSync(AppCore.#basicAuthFilePath, "utf-8")
             .split(/\r?\n/).filter(line => line.trim() != '')
             .map(line => line.split(":"))
             .map(([user, pass]) => [user, pass.trim()])
@@ -128,6 +130,15 @@ class AppCore {
             logger.level = this.property.logLevel;
         }
 
+        if (this.property.accessControl) {
+            logger.info('access control enabled');
+            this.#refreshAccessControlMap();
+            fs.watchFile(AppCore.#basicAuthFilePath, () => {
+                logger.info('htpasswd file changed, refreshing access control map...');
+                this.#refreshAccessControlMap();
+            });
+        }
+
         await this.getProxies();
         const server = this.server.listen(this.port, () => {
             let {address, port} = server.address();
@@ -140,14 +151,7 @@ class AppCore {
             logger.info('refreshing proxy list finished');
         });
 
-        if (this.property.accessControl) {
-            logger.info('access control enabled');
-            this.#refreshAccessControlMap();
-            fs.watchFile('.htpasswd', () => {
-                logger.info('htpasswd file changed, refreshing access control map...');
-                this.#refreshAccessControlMap();
-            });
-        }
+        
         return this.server;
     }
 }
