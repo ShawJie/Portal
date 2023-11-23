@@ -55,7 +55,9 @@ class AppCore {
 
     inAccessSet({username, password}) {        
         if (this.accessControlMap.has(username)) {
-            return password === this.accessControlMap.get(username);
+            let except = this.accessControlMap.get(username);
+            logger.debug('user found in access control map, %s => inbound: %s, except: %s', username, password, except);
+            return password === except;
         }
         logger.warn('user not found in access control map, %s', username);
         return false;
