@@ -1,70 +1,31 @@
 const app = require("../App");
 const BaseConverter = require("./BaseConverter");
-const { proxyGroupType } = require("../entry/Grouper")
+const { proxyGroupType } = require("../entry/Grouper");
+const SingboxConfigurationCore = require("./singbox/SingboxConfigurationCore");
 
 class SingboxConverter extends BaseConverter {
 
-    static #configTemplate = {
-        dns: {
-            rules: [
-                {outbound: ["any"], server: "local"}, 
-                {disable_cache: true, geosite: ["category-ads-all"], server: "block"}, 
-                {clash_mode: "global", server: "remote"}, 
-                {clash_mode: "direct", server: "local"}, 
-                {geosite: "cn", server: "local"}, 
-            ],
-            servers: [
-                {address: "https://1.12.12.12/dns-query", tag: "remote"},
-                {address: "local", detour: "direct", tag: "local"},
-                {address: "rcode://success", tag: "block"},
-            ],
-            strategy: "prefer_ipv4"
-        },
-        experimental: {
-            clash_api: {
-                external_controller: "127.0.0.1:9090",
-                secret: "",
-                store_selected: true
-            }
-        },
-        inbounds: [
-            {"auto_route":true,"domain_strategy":"prefer_ipv4","endpoint_independent_nat":true,"inet4_address":"172.19.0.1/30","inet6_address":"2001:0470:f9da:fdfa::1/64","mtu":9000,"sniff":true,"sniff_override_destination":true,"stack":"mixed","strict_route":true,"type":"tun"},
-            {"domain_strategy":"prefer_ipv4","listen":"127.0.0.1","listen_port":2333,"sniff":true,"sniff_override_destination":true,"tag":"socks-in","type":"socks","users":[]},
-            {"domain_strategy":"prefer_ipv4","listen":"127.0.0.1","listen_port":2334,"sniff":true,"sniff_override_destination":true,"tag":"mixed-in","type":"mixed","users":[]}
-        ],
-        log: {
-            level: "info"
-        },
-        outbounds: [
-            {"tag":"dns-out","type":"dns"},
-            {"tag":"direct","type":"direct"}, 
-            {"tag":"block","type":"block"},
-        ],
-        route: {
-            auto_detect_interface: true,
-            rules: [
-                {"geosite":"category-ads-all","outbound":"block"}, 
-                {"outbound":"dns-out","protocol":"dns"}, 
-                {"clash_mode":"direct","outbound":"direct"}, 
-                {"ip_cidr": ["192.168.0.0/16", "10.0.0.0/8", "172.16.0.0/12", "100.64.0.0/10", "17.0.0.0/8"], "outbound": "direct"},
-                {"geoip":["cn","private"],"outbound":"direct"}, 
-                {"geosite":"cn","outbound":"direct"},
-            ]
-        }
-    };
-
     static #ruleTypeKeyMap = {
         "DOMAIN": "domain",
-        "DOMAIN-SUFFIX": "domain_suffix",
-        "DOMAIN-KEYWORD": "domain_keyword",
+        "DOMAIN-SUFFIX": "domainSuffix",
+        "DOMAIN-KEYWORD": "domainKeyword",
         "IP-CIDR": "ip_cidr",
     }
+
+    static #versionTakePattern = new RegExp("SFI/(?<version>[0-9\\.]+)");
 
     constructor() {
         super('singbox.json');
     }
 
     async export({ua}) {
+        let matcher = ua.match(SingboxConverter.#versionTakePattern);
+        if (matcher) {
+            let {version} = matcher.groups;
+            if (!version.startsWith("1.8")) {
+                return `sing-box version (${version}) is to old, not support anymore`;
+            }
+        }
         let aggProxy = await app.getProxies();
         return this.#fillTemplate(aggProxy);
     }
@@ -80,108 +41,72 @@ class SingboxConverter extends BaseConverter {
         return outbounds;
     }
 
-    #fillTemplateProxies(template, proxies) {
-        for (const [key, proxy] of proxies) {
-            let proxyContent = null, 
-                {server, port, password} = proxy;
-            switch (proxy.type) {
-                case 'ss':
-                    let {cipher, plugin, udp} = proxy;
-                    let pluginOpts = proxy['plugin-opts'];
-                    proxyContent = {
-                        password, server, server_port: port, 
-                        tag: key, type: "shadowsocks", method: cipher
-                    };
-
-                    if (plugin) {
-                        switch (plugin) {
-                            case 'obfs':
-                                proxyContent.plugin = 'obfs-local';
-                                proxyContent.plugin_opts = `obfs=${pluginOpts.mode};obfs-host=${pluginOpts.host}`;
-                                break;
-                        }
-                    }
-                    break;
-                case 'http':
-                    let {username, tls, skipCertVerify} = proxy;
-                    proxyContent = {password, server, server_port: port, tag: key, type: 'http', username};
-                    if (tls) {
-                        proxyContent.tls = {
-                            enabled: true,
-                            insecure: skipCertVerify ?? false
-                        };
-                    }
-                    break;
-            }
-            template.outbounds.push(proxyContent);
+    #convert2UnderLineObj(target) {
+        if (typeof target !== 'object') {
+            return target;
         }
+
+        let tmpObj = new Object();
+        for (const key in target) {
+            let nKey = super._underlinize(key), val = target[key];
+            if (typeof val === 'object') {
+                if (Array.isArray(val)) {
+                    let objArray = new Array();
+                    for (const item of val) {
+                        objArray.push(this.#convert2UnderLineObj(item));
+                    }
+                    tmpObj[nKey] = objArray;
+                } else {
+                    tmpObj[nKey] = this.#convert2UnderLineObj(val);
+                }
+            } else {
+                tmpObj[nKey] = val;
+            }
+        }
+        return tmpObj;
     }
 
-    #fillTemplateGroups(template, groups, finalGroupProc) {
-        for (const group of groups) {
-            let {name, type} = group, groupContent = null;
-            switch (type) {
-                case proxyGroupType.URL_TEST:
-                    groupContent = {
-                        tag: name,
-                        type: 'urltest',
-                        outbounds: [...this.#processGroup(group.groups, group.proxies)]
-                    };
-                    break;
-                case proxyGroupType.SELECT:
-                    groupContent = {
-                        tag: name,
-                        type: 'selector',
-                        outbounds: [...this.#processGroup(group.groups, group.proxies)]
-                    };
-                    break;
-                case proxyGroupType.DIRECT:
-                    groupContent = {
-                        tag: name,
-                        type: 'selector',
-                        outbounds: ['direct']
-                    };
-                    break;
-                case proxyGroupType.BLOCK:
-                    groupContent = {
-                        tag: name,
-                        type: 'selector',
-                        outbounds: ['block', 'direct']
-                    };
-                    break;
-            }
+    #groupWrapperProvider(group) {
+        let groupWrapper = {
+            name: group.name,
+            outbounds: [...this.#processGroup(group.groups, group.proxies)],
+        };
 
-            if (group.rules && group.rules.length > 0) {
-                let subRule = {outbound: name};
-                for (const rule of group.rules) {
-                    let target = SingboxConverter.#ruleTypeKeyMap[rule.type];
-                    if (!subRule[target]) {
-                        subRule[target] = new Array();
-                    }
-                    subRule[target].push(rule.keyword);
-                }
-                template.route.rules.push(subRule);
-            }
-
-            template.outbounds.push(groupContent);
+        switch(group.type) {
+            case proxyGroupType.URL_TEST:
+                groupWrapper.type = "urltest";
+                break;
+            case proxyGroupType.SELECT:
+                groupWrapper.type = "selector";
+                break;
+            case proxyGroupType.DIRECT:
+                groupWrapper.type = "selector";
+                groupWrapper.outbounds = ["direct"];
+                break;
+            case proxyGroupType.BLOCK:
+                groupWrapper.type = "selector";
+                groupWrapper.outbounds = ["block", "direct"]
+                break;
         }
 
-        return finalGroupProc(groups.filter(g => g.final)[0]);
+        if (group.rules) {
+            let copyRules = new Array();
+            group.rules.map(r => {return {...r, type: SingboxConverter.#ruleTypeKeyMap[r.type]}})
+                .forEach(r => copyRules.push(r));
+            groupWrapper.rules = copyRules;
+        }
+        return groupWrapper;
     }
 
     #fillTemplate(aggreProxy) {
-        let singboxConfig = super._clone(SingboxConverter.#configTemplate);
+        const {name} = aggreProxy.groups.filter(e => e.final)[0];
+        const singboxConfigInstance = new SingboxConfigurationCore(name);
 
-        this.#fillTemplateProxies(singboxConfig, aggreProxy.proxies);
-        this.#fillTemplateGroups(singboxConfig, aggreProxy.groups, (finalGroup) => {
-            singboxConfig.route.final = finalGroup.name;
-            singboxConfig.route.rules.push({
-                "clash_mode": "global", 
-                "outbound": finalGroup.name
-            });
-        });
-        
-        return JSON.stringify(singboxConfig, null, 4);
+        aggreProxy.proxies.forEach((val, key) => singboxConfigInstance.addProxy(key, val));
+        aggreProxy.groups.map(g => this.#groupWrapperProvider(g)).forEach(e => singboxConfigInstance.addGroup(e));
+
+        let configObject = singboxConfigInstance.getConfig();
+        return JSON.stringify(this.#convert2UnderLineObj(configObject), null, 4);
     }
 }
 
