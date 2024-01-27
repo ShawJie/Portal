@@ -1,6 +1,7 @@
 const yaml = require('yaml');
 const app = require("../App");
 const BaseConverter = require("./BaseConverter");
+const { proxyGroupType } = require("../entry/Grouper");
 
 class ClashConverter extends BaseConverter {
 
@@ -20,10 +21,7 @@ class ClashConverter extends BaseConverter {
         secret: '',
         proxies: [],
         proxyGroups: [],
-        rules: [
-            "GEOIP,CN,DIRECT",
-            "MATCH,节点选择"
-        ]
+        rules: []
     }
 
     constructor() {
@@ -77,17 +75,28 @@ class ClashConverter extends BaseConverter {
         return outbounds;
     }
 
-    #fillTemplateGroups(template, groups) {
+    #fillTemplateGroups(template, groups, finalGroupProc) {
         for (const group of groups) {
             let groupContent = {
                 name: group.name,
-                type: group.type,
-                proxies: this.#processGroup(group.groups, group.proxies)
+                type: group.type
             };
 
-            if (group.type === 'url-test') {
-                groupContent.url = ClashConverter.#autoRouter.url;
-                groupContent.interval = ClashConverter.#autoRouter.interval;
+            switch (group.type) {
+                case proxyGroupType.URL_TEST:
+                    groupContent.url = ClashConverter.#autoRouter.url;
+                    groupContent.interval = ClashConverter.#autoRouter.interval;
+                case proxyGroupType.SELECT:
+                    groupContent.proxies = this.#processGroup(group.groups, group.proxies);
+                    break;
+                case proxyGroupType.DIRECT:
+                    groupContent.proxies = ['DIRECT'];
+                    groupContent.type = 'select';
+                    break;
+                case proxyGroupType.BLOCK:
+                    groupContent.proxies = ['REJECT', 'DIRECT'];
+                    groupContent.type = 'select';
+                    break;
             }
 
             template.proxyGroups.push(groupContent);
@@ -97,14 +106,18 @@ class ClashConverter extends BaseConverter {
                     .forEach(r => template.rules.unshift(r));
             }
         }
+
+        return finalGroupProc(groups.filter(g => g.final)[0]);
     }
 
     #fillTemplate(aggreProxy) {
         let clashConfig = super._clone(ClashConverter.#clashConfigTemplate);
 
         this.#fillTemplateProxies(clashConfig, aggreProxy.proxies);
-        this.#fillTemplateGroups(clashConfig, aggreProxy.groups);
-        
+        this.#fillTemplateGroups(clashConfig, aggreProxy.groups, finalGroup => {
+            clashConfig.rules.push('GEOIP,CN,DIRECT');
+            clashConfig.rules.push(`MATCH,${finalGroup.name}`);
+        });
 
         return yaml.stringify(this.#convert2KebabizeObj(clashConfig), {
             defaultKeyType: 'PLAIN',

@@ -41,13 +41,11 @@ class SingboxConverter extends BaseConverter {
             {"tag":"block","type":"block"},
         ],
         route: {
-            final: "节点选择",
             auto_detect_interface: true,
             rules: [
                 {"geosite":"category-ads-all","outbound":"block"}, 
                 {"outbound":"dns-out","protocol":"dns"}, 
                 {"clash_mode":"direct","outbound":"direct"}, 
-                {"clash_mode":"global","outbound":"节点选择"}, 
                 {"ip_cidr": ["192.168.0.0/16", "10.0.0.0/8", "172.16.0.0/12", "100.64.0.0/10", "17.0.0.0/8"], "outbound": "direct"},
                 {"geoip":["cn","private"],"outbound":"direct"}, 
                 {"geosite":"cn","outbound":"direct"},
@@ -59,13 +57,14 @@ class SingboxConverter extends BaseConverter {
         "DOMAIN": "domain",
         "DOMAIN-SUFFIX": "domain_suffix",
         "DOMAIN-KEYWORD": "domain_keyword",
+        "IP-CIDR": "ip_cidr",
     }
 
     constructor() {
         super('singbox.json');
     }
 
-    async export() {
+    async export({ua}) {
         let aggProxy = await app.getProxies();
         return this.#fillTemplate(aggProxy);
     }
@@ -87,10 +86,11 @@ class SingboxConverter extends BaseConverter {
                 {server, port, password} = proxy;
             switch (proxy.type) {
                 case 'ss':
-                    let {cipher, plugin} = proxy;
+                    let {cipher, plugin, udp} = proxy;
                     let pluginOpts = proxy['plugin-opts'];
                     proxyContent = {
-                        password, server, server_port: port, tag: key, type: "shadowsocks", method: cipher
+                        password, server, server_port: port, 
+                        tag: key, type: "shadowsocks", method: cipher
                     };
 
                     if (plugin) {
@@ -117,7 +117,7 @@ class SingboxConverter extends BaseConverter {
         }
     }
 
-    #fillTemplateGroups(template, groups) {
+    #fillTemplateGroups(template, groups, finalGroupProc) {
         for (const group of groups) {
             let {name, type} = group, groupContent = null;
             switch (type) {
@@ -133,6 +133,20 @@ class SingboxConverter extends BaseConverter {
                         tag: name,
                         type: 'selector',
                         outbounds: [...this.#processGroup(group.groups, group.proxies)]
+                    };
+                    break;
+                case proxyGroupType.DIRECT:
+                    groupContent = {
+                        tag: name,
+                        type: 'selector',
+                        outbounds: ['direct']
+                    };
+                    break;
+                case proxyGroupType.BLOCK:
+                    groupContent = {
+                        tag: name,
+                        type: 'selector',
+                        outbounds: ['block', 'direct']
                     };
                     break;
             }
@@ -151,15 +165,23 @@ class SingboxConverter extends BaseConverter {
 
             template.outbounds.push(groupContent);
         }
+
+        return finalGroupProc(groups.filter(g => g.final)[0]);
     }
 
     #fillTemplate(aggreProxy) {
-        let surfboardConfig = super._clone(SingboxConverter.#configTemplate);
+        let singboxConfig = super._clone(SingboxConverter.#configTemplate);
 
-        this.#fillTemplateProxies(surfboardConfig, aggreProxy.proxies);
-        this.#fillTemplateGroups(surfboardConfig, aggreProxy.groups);
+        this.#fillTemplateProxies(singboxConfig, aggreProxy.proxies);
+        this.#fillTemplateGroups(singboxConfig, aggreProxy.groups, (finalGroup) => {
+            singboxConfig.route.final = finalGroup.name;
+            singboxConfig.route.rules.push({
+                "clash_mode": "global", 
+                "outbound": finalGroup.name
+            });
+        });
         
-        return JSON.stringify(surfboardConfig, null, 4);
+        return JSON.stringify(singboxConfig, null, 4);
     }
 }
 

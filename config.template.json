@@ -15,23 +15,22 @@
     "exclude": "<EXCLUDE NODE WITH REGEX>",
     "customGroups": [
         {
-            "groupName": "<CUSTOM GROUP NAME>",
-            "type": "<GROUP ACTON TYPE>",
-            "proxys": "<MATCHED PROXY NAME WITH REGEX>",
-            "rules": [
-                {
-                    "ruleType": "DOMAIN",
-                    "keyword": "chat.openai.com.cdn.cloudflare.net"
-                },
-                {
-                    "ruleType": "DOMAIN-SUFFIX",
-                    "keyword": "openai.com"
-                },
-                {
-                    "ruleType": "DOMAIN-KEYWORD",
-                    "keyword": "oaistatic"
-                }
-            ]
+            "groupName": "OpenAI",
+            "type": "select",
+            "proxys": "(广台|韩国)",
+            "rules": [{"ruleType":"DOMAIN","keyword":"chat.openai.com.cdn.cloudflare.net"},{"ruleType":"DOMAIN","keyword":"openaiapi-site.azureedge.net"},{"ruleType":"DOMAIN","keyword":"openaicom-api-bdcpf8c6d2e9atf6.z01.azurefd.net"},{"ruleType":"DOMAIN","keyword":"openaicomproductionae4b.blob.core.windows.net"},{"ruleType":"DOMAIN","keyword":"production-openaicom-storage.azureedge.net"},{"ruleType":"DOMAIN","keyword":"o33249.ingest.sentry.io"},{"ruleType":"DOMAIN","keyword":"openaicom.imgix.net"},{"ruleType":"DOMAIN-SUFFIX","keyword":"ai.com"},{"ruleType":"DOMAIN-SUFFIX","keyword":"openai.com"},{"ruleType":"DOMAIN-KEYWORD","keyword":"oaistatic"}]
+        },
+	{
+            "groupName": "游戏平台",
+            "type": "select",
+            "attachGroup": ["节点选择","香港节点","美国节点","手动切换","直连"],
+            "rules": [{"ruleType":"DOMAIN-SUFFIX","keyword":"epicgames.com"},{"ruleType":"DOMAIN-SUFFIX","keyword":"helpshift.com"},{"ruleType":"DOMAIN-SUFFIX","keyword":"paragon.com"},{"ruleType":"DOMAIN-SUFFIX","keyword":"unrealengine.com"},{"ruleType":"DOMAIN-SUFFIX","keyword":"playstation.com"},{"ruleType":"DOMAIN-SUFFIX","keyword":"playstation.net"},{"ruleType":"DOMAIN-SUFFIX","keyword":"playstationnetwork.com"},{"ruleType":"DOMAIN-SUFFIX","keyword":"sony.com"},{"ruleType":"DOMAIN-SUFFIX","keyword":"sonyentertainmentnetwork.com"},{"ruleType":"DOMAIN","keyword":"steambroadcast.akamaized.net"},{"ruleType":"DOMAIN","keyword":"steamcdn-a.akamaihd.net"},{"ruleType":"DOMAIN","keyword":"steamcommunity-a.akamaihd.net"},{"ruleType":"DOMAIN","keyword":"steampipe.akamaized.net"},{"ruleType":"DOMAIN","keyword":"steamstore-a.akamaihd.net"},{"ruleType":"DOMAIN","keyword":"steamusercontent-a.akamaihd.net"},{"ruleType":"DOMAIN","keyword":"steamuserimages-a.akamaihd.net"},{"ruleType":"DOMAIN-SUFFIX","keyword":"fanatical.com"},{"ruleType":"DOMAIN-SUFFIX","keyword":"humblebundle.com"},{"ruleType":"DOMAIN-SUFFIX","keyword":"playartifact.com"},{"ruleType":"DOMAIN-SUFFIX","keyword":"steam-chat.com"},{"ruleType":"DOMAIN-SUFFIX","keyword":"steamcommunity.com"},{"ruleType":"DOMAIN-SUFFIX","keyword":"steamgames.com"},{"ruleType":"DOMAIN-SUFFIX","keyword":"steampowered.com"},{"ruleType":"DOMAIN-SUFFIX","keyword":"steamserver.net"},{"ruleType":"DOMAIN-SUFFIX","keyword":"steamstat.us"},{"ruleType":"DOMAIN-SUFFIX","keyword":"steamstatic.com"},{"ruleType":"DOMAIN-SUFFIX","keyword":"underlords.com"},{"ruleType":"DOMAIN-SUFFIX","keyword":"valvesoftware.com"}]
+        },
+	{
+            "groupName": "果子服务",
+            "type": "select",
+            "attachGroup": ["直连", "节点选择", "香港节点", "美国节点", "手动切换"],
+            "rules": [{"ruleType":"DOMAIN","keyword":"apple.comscoreresearch.com"},{"ruleType":"DOMAIN-SUFFIX","keyword":"aaplimg.com"},{"ruleType":"DOMAIN-SUFFIX","keyword":"akadns.net"},{"ruleType":"DOMAIN-SUFFIX","keyword":"apple-cloudkit.com"},{"ruleType":"DOMAIN-SUFFIX","keyword":"apple-mapkit.com"},{"ruleType":"DOMAIN-SUFFIX","keyword":"apple.co"},{"ruleType":"DOMAIN-SUFFIX","keyword":"apple.com"},{"ruleType":"DOMAIN-SUFFIX","keyword":"apple.com.cn"},{"ruleType":"DOMAIN-SUFFIX","keyword":"apple.news"},{"ruleType":"DOMAIN-SUFFIX","keyword":"appstore.com"},{"ruleType":"DOMAIN-SUFFIX","keyword":"cdn-apple.com"},{"ruleType":"DOMAIN-SUFFIX","keyword":"crashlytics.com"},{"ruleType":"DOMAIN-SUFFIX","keyword":"icloud-content.com"},{"ruleType":"DOMAIN-SUFFIX","keyword":"icloud.com"},{"ruleType":"DOMAIN-SUFFIX","keyword":"icloud.com.cn"},{"ruleType":"DOMAIN-SUFFIX","keyword":"itunes.com"},{"ruleType":"DOMAIN-SUFFIX","keyword":"me.com"},{"ruleType":"DOMAIN-SUFFIX","keyword":"mzstatic.com"},{"ruleType":"IP-CIDR","keyword":"17.0.0.0/8"},{"ruleType":"IP-CIDR","keyword":"63.92.224.0/19"},{"ruleType":"IP-CIDR","keyword":"65.199.22.0/23"},{"ruleType":"IP-CIDR","keyword":"139.178.128.0/18"},{"ruleType":"IP-CIDR","keyword":"144.178.0.0/19"},{"ruleType":"IP-CIDR","keyword":"144.178.36.0/22"},{"ruleType":"IP-CIDR","keyword":"144.178.48.0/20"},{"ruleType":"IP-CIDR","keyword":"192.35.50.0/24"},{"ruleType":"IP-CIDR","keyword":"198.183.17.0/24"},{"ruleType":"IP-CIDR","keyword":"205.180.175.0/24"}]
         }
     ]
 }

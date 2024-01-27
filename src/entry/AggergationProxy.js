@@ -5,7 +5,7 @@ class AggregationProxy {
         this.proxies = new Map();
         this.groups = [...defaultGroups];
         if (customGroups) {
-            for (const {groupName, type, proxys, rules} of customGroups) {
+            for (const {groupName, type, proxys, rules, attachGroup} of customGroups) {
                 let wrapperRules = null;
                 if (rules) {
                     wrapperRules = new Array();
@@ -13,7 +13,16 @@ class AggregationProxy {
                         wrapperRules.push(new ProxyRule(ruleType, keyword));
                     }
                 }
-                this.groups.push(new ProxyGroup(groupName, type, new RegExp(proxys), wrapperRules));
+
+                let curGroupInst = new ProxyGroup(
+                    groupName, type, proxys ? new RegExp(proxys) : undefined, wrapperRules);
+                if (attachGroup) {
+                    attachGroup.forEach((group) => {
+                        curGroupInst.addGroup(group);
+                    });
+                }
+
+                this.groups.push(curGroupInst);
             }
         }
     }

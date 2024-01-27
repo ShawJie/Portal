@@ -1,5 +1,6 @@
 const app = require("../App");
 const BaseConverter = require("./BaseConverter");
+const { proxyGroupType } = require("../entry/Grouper");
 
 const sectionKeyMap = {
     general: 'General',
@@ -20,7 +21,7 @@ class SurfboardConfigSection {
     }
 
     addDirectVal(val) {
-        this.properties.unshift(val);
+        this.properties.push(val);
     }
 }
 
@@ -88,10 +89,7 @@ class SurfboardConfigFactory {
     }
 
     static #addRuleSection() {
-        let ruleSection = new SurfboardConfigSection(sectionKeyMap.rule);
-        ruleSection.addDirectVal("FINAL,节点选择");
-        ruleSection.addDirectVal("GEOIP,CN,DIRECT");
-        return ruleSection;
+        return new SurfboardConfigSection(sectionKeyMap.rule);
     }
 
     static newConfigLayer() {
@@ -111,9 +109,9 @@ class SurfboardConverter extends BaseConverter {
         super('surfboard.conf');
     }
 
-    async export(userinfo) {
+    async export({accessUser}) {
         let aggProxy = await app.getProxies();
-        return this.#fillTemplate(aggProxy, userinfo);
+        return this.#fillTemplate(aggProxy, accessUser);
     }
 
     #processGroup(groups, proxies) {
@@ -153,15 +151,21 @@ class SurfboardConverter extends BaseConverter {
         }
     }
 
-    #fillTemplateGroups(layer, groups) {
+    #fillTemplateGroups(layer, groups, finalGroupProc) {
         for (const group of groups) {
             let {name, type} = group, groupContent = null;
             switch (type) {
-                case 'url-test':
+                case proxyGroupType.URL_TEST:
                     groupContent = `url-test, ${this.#processGroup(group.groups, group.proxies)}, interval = 300`;
                     break;
-                case 'select':
-                    groupContent = `select, ${this.#processGroup(group.groups, group.proxies)}, DIRECT`;
+                case proxyGroupType.SELECT:
+                    groupContent = `select, ${this.#processGroup(group.groups, group.proxies)}`;
+                    break;
+                case proxyGroupType.DIRECT:
+                    groupContent = `select, DIRECT`;
+                    break;
+                case proxyGroupType.BLOCK:
+                    groupContent = `select, REJECT, DIRECT`;
                     break;
             }
 
@@ -172,15 +176,20 @@ class SurfboardConverter extends BaseConverter {
 
             layer.getSection(sectionKeyMap.proxyGroup).addProperty(name, groupContent);
         }
+
+        return finalGroupProc(groups.filter(g => g.final)[0]);
     }
 
     #fillTemplate(aggreProxy, userinfo) {
         let surfboardConfig = SurfboardConfigFactory.newConfigLayer();
 
         this.#fillTemplateProxies(surfboardConfig, aggreProxy.proxies);
-        this.#fillTemplateGroups(surfboardConfig, aggreProxy.groups);
+        this.#fillTemplateGroups(surfboardConfig, aggreProxy.groups, (finalGroup) => {
+            surfboardConfig.getSection(sectionKeyMap.rule).addDirectVal(`GEOIP,CN,DIRECT`);
+            surfboardConfig.getSection(sectionKeyMap.rule).addDirectVal(`FINAL,${finalGroup.name}`);
+        });
         
-        surfboardConfig.addComment(`#!MANAGED-CONFIG ${app.getDomainHostWithAuth(userinfo)}/surfboard interval=64800 strict=false`)
+        surfboardConfig.addComment(`#!MANAGED-CONFIG ${app.getDomainHostWithAuth(userinfo)}/surfboard interval=64800 strict=false`);
         return surfboardConfig.generate();
     }
 }

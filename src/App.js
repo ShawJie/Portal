@@ -151,7 +151,6 @@ class AppCore {
             logger.info('refreshing proxy list finished');
         });
 
-        
         return this.server;
     }
 }

@@ -1,12 +1,15 @@
 const proxyGroupType = {
     URL_TEST: "url-test",
-    SELECT: "select"
+    SELECT: "select",
+    DIRECT: "direct",
+    BLOCK: "block",
 }
 
 const proxyRuleType = {
     DOMAIN: "DOMAIN",
     DOMAIN_SUFFIX: "DOMAIN-SUFFIX",
     DOMAIN_KEYWORD: "DOMAIN-KEYWORD",
+    IP_CIDR: "IP-CIDR",
 }
 
 class ProxyRule {
@@ -37,6 +40,7 @@ class ProxyGroup {
         this.proxies = new Array();
         this.groups = new Array();
         this.rules = rules;
+        this.final = false;
     }
 
     addProxy(proxy) {
@@ -51,7 +55,6 @@ class ProxyGroup {
                     this.proxies.push(proxy);
                 }
                 break;
-
         }
     }
 
@@ -60,17 +63,26 @@ class ProxyGroup {
         return this;
     }
 
+    setAsFinal() {
+        this.final = true;
+        return this;
+    }
+
     clear() {
         this.proxies = new Array();
     }
 }
+
+const DIRECT_GROUP = "直连";
+const BLOCK_GROUP = "拦截";
 
 const defaultGroups = [
     new ProxyGroup("节点选择", proxyGroupType.SELECT)
         .addGroup("自动选择").addGroup('香港节点')
         .addGroup('日本节点').addGroup('美国节点')
         .addGroup('台湾节点').addGroup('新加坡节点')
-        .addGroup("手动切换"),
+        .addGroup("手动切换").addGroup(DIRECT_GROUP)
+        .setAsFinal(),
     new ProxyGroup("手动切换", proxyGroupType.SELECT, new RegExp(".*")),
     new ProxyGroup("自动选择", proxyGroupType.URL_TEST, new RegExp(".*")),
     new ProxyGroup("香港节点", proxyGroupType.URL_TEST, new RegExp("港")),
@@ -78,6 +90,8 @@ const defaultGroups = [
     new ProxyGroup("美国节点", proxyGroupType.URL_TEST, new RegExp("美")),
     new ProxyGroup("台湾节点", proxyGroupType.URL_TEST, new RegExp("台")),
     new ProxyGroup("新加坡节点", proxyGroupType.URL_TEST, new RegExp("(新|韩国)")),
+    new ProxyGroup(DIRECT_GROUP, proxyGroupType.DIRECT),
+    new ProxyGroup(BLOCK_GROUP, proxyGroupType.BLOCK)
 ]
 
 module.exports = {
