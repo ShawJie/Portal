@@ -12,7 +12,7 @@ class SingboxConfigurationCore {
     #route;
     #experimental;
     
-    constructor(defaultDetour, logLevel = "info") {
+    constructor(defaultDetour, logLevel = "warn") {
         this.#log = new SingboxLog(logLevel);
         this.#dns = new SingboxDns();
         this.#inbounds = FORCE_INBOUNDS.reduce((p, c) => p.addInbound(c), new SingboxInbounds())
@@ -20,7 +20,7 @@ class SingboxConfigurationCore {
         this.#route = new SingboxRoute(defaultDetour);
         this.#experimental = new SingboxExperimental({
             clash: {
-                port: 9900
+                port: 9090
             }
         });
     }
@@ -78,37 +78,40 @@ class SingboxInbounds extends Array {
     }
 };
 
-const FORCE_INBOUNDS = [{
-    autoRoute: true,
-    domainStrategy: "prefer_ipv4",
-    endpointIndependentNat: true,
-    inet4Address: "172.19.0.1/30",
-    inet6Address: "2001:0470:f9da:fdfa::1/64",
-    mtu: 9000,
-    sniff: true,
-    sniffOverrideDestination: true,
-    strictRoute: true,
-    type: "tun"
-},
-{
-    domainStrategy: "prefer_ipv4",
-    listen: "127.0.0.1",
-    listenPort: 2333,
-    sniff: true,
-    sniffOverrideDestination: true,
-    tag: "socks-in",
-    type: "socks",
-    users: []
-},
-{
-    domainStrategy: "prefer_ipv4",
-    listen: "127.0.0.1",
-    listenPort: 2334,
-    sniff: true,
-    sniffOverrideDestination: true,
-    tag: "mixed-in",
-    type: "mixed",
-    users: []
-}];
+const FORCE_INBOUNDS = [
+    {
+        sniffOverrideDestination: true,
+        sniff: true,
+        endpointIndependentNat: true,
+        strictRoute: true,
+        autoRoute: true,
+        mtu: 1500,
+        inet4Address: "172.19.0.1/30",
+        interfaceName: "tun0",
+        domainStrategy: "prefer_ipv4",
+        tag: "tun-in",
+        type: "tun"
+    },
+    {
+        domainStrategy: "prefer_ipv4",
+        listen: "127.0.0.1",
+        listenPort: 7891,
+        sniff: true,
+        sniffOverrideDestination: true,
+        tag: "socks-in",
+        type: "socks",
+        users: []
+    },
+    {
+        domainStrategy: "prefer_ipv4",
+        listen: "127.0.0.1",
+        listenPort: 7890,
+        sniff: true,
+        sniffOverrideDestination: true,
+        tag: "mixed-in",
+        type: "mixed",
+        users: []
+    }
+];
 
 module.exports = SingboxConfigurationCore;

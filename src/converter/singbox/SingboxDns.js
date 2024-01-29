@@ -1,43 +1,73 @@
 const { inheritRuleSetNames } = require("./SingboxRoute");
 
-const DEFAULT_DNS_SERVERS = [{
-        tag: "dnspod",
+const DEFAULT_DNS_SERVERS = [
+    {
+        tag: "dns-direct",
         detour: "direct",
-        address: "https://1.12.12.12/dns-query"
-    }, {
-        tag: "google",
-        address: "https://8.8.8.8/dns-query"
-    }, {
-        tag: "block",
-        address: "rcode://success"
+        address: "https://1.12.12.12/dns-query",
+        addressResolver: "dns-local",
+    }, 
+    {
+        tag: "dns-remote",
+        address: "https://1.1.1.1/dns-query",
+        addressResolver: "dns-local"
+    }, 
+    {
+        tag: "dns-block",
+        address: "rcode://success",
     },
+    {
+        tag: "dns-local",
+        address: "local",
+        detour: "direct"
+    },
+    {
+        tag: "dns-fakeip",
+        address: "fakeip"
+    }
 ];
 
-const DEFAULT_DNS_RULES = [{
-        outbound: ["any"],
-        server: "dnspod"
-    }, {
-        sourceIpIsPrivate: true,
-        server: "local"
-    }, {
+const DEFAULT_DNS_RULES = [
+    {
+        outbound: "direct",
+        server: "dns-direct"
+    },
+    {
+        outbound: "any",
+        server: "dns-direct"
+    },
+    {
+        domainSuffix: [
+            ".arpa",
+            ".arpa."
+        ],
+        server: "dns-block"
+    },
+    {
         ruleSet: [inheritRuleSetNames.geositeAds],
-        server: "block",
+        server: "dns-block",
         disableCache: true
-    }, {
+    },
+    {
         ruleSet: [inheritRuleSetNames.geositeCn],
-        server: "dnspod"
-    }, {
-        ruleSet: [inheritRuleSetNames.geositeCn],
-        invert: true,
-        server: "google"
+        server: "dns-direct"
+    },
+    {
+        query_type: ["A", "AAAA"],
+        server: "dns-fakeip"
     }
 ]
 
 class SingboxDns {
     
+    final = "dns-remote";
     strategy = "prefer_ipv4";
+    reverseMapping = true;
+    independentCache = true;
+
     servers = new Array();
     rules = new Array();
+    fakeip = new SingboxDnsFakeip();
 
     constructor() {
         DEFAULT_DNS_SERVERS.forEach(e => this.addServer(e));
@@ -53,6 +83,12 @@ class SingboxDns {
     addRule(serverRule) {
         this.rules.push(serverRule);
     }
+}
+
+class SingboxDnsFakeip {
+    enabled = true;
+    inet4Range =  "198.18.0.0/15";
+    inet6Range = "fc00::/18";
 }
 
 module.exports = SingboxDns;
