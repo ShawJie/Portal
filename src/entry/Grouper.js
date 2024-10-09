@@ -85,11 +85,11 @@ const defaultGroups = [
         .setAsFinal(),
     new ProxyGroup("手动切换", proxyGroupType.SELECT, new RegExp(".*")),
     new ProxyGroup("自动选择", proxyGroupType.URL_TEST, new RegExp(".*")),
-    new ProxyGroup("香港节点", proxyGroupType.URL_TEST, new RegExp("港")),
-    new ProxyGroup("日本节点", proxyGroupType.URL_TEST, new RegExp("日")),
-    new ProxyGroup("美国节点", proxyGroupType.URL_TEST, new RegExp("美")),
-    new ProxyGroup("台湾节点", proxyGroupType.URL_TEST, new RegExp("台")),
-    new ProxyGroup("新加坡节点", proxyGroupType.URL_TEST, new RegExp("(新|韩国)")),
+    new ProxyGroup("香港节点", proxyGroupType.URL_TEST, new RegExp("(港|Hong Kong|HK)")),
+    new ProxyGroup("日本节点", proxyGroupType.URL_TEST, new RegExp("(日|Japan|JP)")),
+    new ProxyGroup("美国节点", proxyGroupType.URL_TEST, new RegExp("(美|USA)")),
+    new ProxyGroup("台湾节点", proxyGroupType.URL_TEST, new RegExp("(台|Taiwan)")),
+    new ProxyGroup("新加坡节点", proxyGroupType.URL_TEST, new RegExp("(新|韩国|Singapore|KR|UK)")),
     new ProxyGroup(DIRECT_GROUP, proxyGroupType.DIRECT),
     new ProxyGroup(BLOCK_GROUP, proxyGroupType.BLOCK)
 ]
