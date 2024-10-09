@@ -13,9 +13,11 @@ class SurfboardProxy extends SurfboardAbstractConfigSection {
             case 'ss':
                 proxyObject.push(
                     "ss", server, port, `encrypt-method=${proxy.cipher}`,
-                    `password=${password}`, `udp-relay=${proxy.udp}`, `obfs=${proxy['plugin-opts'].mode}`,
-                    `obfs-host=${proxy['plugin-opts'].host}`
+                    `password=${password}`, `udp-relay=${proxy.udp}`
                 );
+                if (proxy['plugin-opts']) {
+                    proxyObject.push(`obfs=${proxy['plugin-opts'].mode}`, `obfs-host=${proxy['plugin-opts'].host}`);
+                }
                 break;
             case 'http':
                 proxyObject.push(
