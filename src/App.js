@@ -88,7 +88,7 @@ class AppCore {
         let path = this.property.basePath;
         let afterProxy = null;
         if (path) {
-            afterProxy = await axios.get(path).then((res) => {
+            afterProxy = await axios.get(path, {headers: {'User-Agent': 'Clash/v1.18.0'}}).then((res) => {
                 let document = yaml.parse(res.data);
                 return this.#extraClashConfig(document);
             }).then((proxys) => {
