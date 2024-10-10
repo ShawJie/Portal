@@ -1,4 +1,4 @@
-const { defaultGroups, ProxyGroup, ProxyRule } = require('./Grouper')
+const { defaultGroups, ProxyGroup, ProxyRule, proxyGroupType } = require('./Grouper')
 
 class AggregationProxy {
     constructor({customGroups}) {
@@ -45,12 +45,22 @@ class AggregationProxy {
         });
     }
 
+    #filterEmptyGroup(groupInst) {
+        if (groupInst.final) {
+            return true;
+        }
+
+        if (groupInst.type === proxyGroupType.DIRECT || groupInst.type === proxyGroupType.BLOCK) {
+            return true;
+        }
+
+        return groupInst.proxies.length > 0 || groupInst.groups.length > 0;
+    }
+
     resource() {
         return {
             proxies: this.proxies,
-            groups: this.groups.filter(g => g.final || (
-                g.proxies.length > 0 || g.groups.length > 0)
-            )
+            groups: this.groups.filter(g => this.#filterEmptyGroup(g))
         }
     }
 
