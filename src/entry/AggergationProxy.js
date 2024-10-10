@@ -45,6 +45,15 @@ class AggregationProxy {
         });
     }
 
+    resource() {
+        return {
+            proxies: this.proxies,
+            groups: this.groups.filter(g => g.final || (
+                g.proxies.length > 0 || g.groups.length > 0)
+            )
+        }
+    }
+
     isEmpty() {
         return this.proxies.size == 0;
     }

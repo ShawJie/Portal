@@ -113,12 +113,12 @@ class AppCore {
 
     async getProxies(refresh = false) {
         if (this.#isLoaded() && !refresh) {
-            return this.aggProxy;
+            return this.aggProxy.resource();
         }
 
         this.aggProxy.refresh();
         await this.#loadConfigFromPath();
-        return this.aggProxy;
+        return this.aggProxy.resource();
     }
 
     async run() {
