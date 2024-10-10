@@ -22,12 +22,26 @@ class SingboxConverter extends BaseConverter {
         let matcher = ua.match(SingboxConverter.#versionTakePattern);
         if (matcher) {
             let {version} = matcher.groups;
-            if (!version.startsWith("1.8")) {
+            if (!this.#versionThreshold(version)) {
                 return `sing-box version (${version}) is to old, not support anymore`;
             }
         }
         let aggProxy = await app.getProxies();
         return this.#fillTemplate(aggProxy);
+    }
+
+    #versionThreshold(version) {
+        const lessVersion = [1, 8];
+        
+        let versionSplited = version.split('.').map(e => parseInt(e));
+        while (lessVersion.length > 0) {
+            let cur = lessVersion.shift();
+            let curVersion = versionSplited.shift();
+            if (curVersion < cur) {
+                return false;
+            }
+        }
+        return true;
     }
 
     #processGroup(groups, proxies) {
