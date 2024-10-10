@@ -1,11 +1,15 @@
 FROM node:19-alpine3.15
 
-COPY . /data
+WORKDIR /workspace
 
-WORKDIR /data
-
-RUN npm install
+RUN sed -i 's#https\?://dl-cdn.alpinelinux.org/alpine#https://mirrors.tuna.tsinghua.edu.cn/alpine#g' /etc/apk/repositories && \
+    apk update && apt add git && \
+    git clone https://github.com/ShawJie/Portal.git portal && cd portal && \
+    npm config set registry http://mirrors.cloud.tencent.com/npm && \
+    npm install
 
 EXPOSE 8080
 
-ENTRYPOINT ["node", "/data/index.js"]
+WORKDIR /workspace/portal
+
+ENTRYPOINT ["node", "index.js"]
