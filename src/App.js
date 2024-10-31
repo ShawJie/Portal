@@ -98,9 +98,7 @@ class AppCore {
             afterProxy = this.#postProcessProxyList([]);
         }
 
-        for (const proxy of afterProxy) {
-            this.aggProxy.addProxy(proxy);
-        }
+        return afterProxy;
     }
 
     #extraClashConfig(document) {
@@ -116,8 +114,8 @@ class AppCore {
             return this.aggProxy.resource();
         }
 
-        this.aggProxy.refresh();
-        await this.#loadConfigFromPath();
+        await this.#loadConfigFromPath()
+            .then((proxies) => this.aggProxy.refresh(proxies))
         return this.aggProxy.resource();
     }
 

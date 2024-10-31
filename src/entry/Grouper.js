@@ -71,6 +71,21 @@ class ProxyGroup {
     clear() {
         this.proxies = new Array();
     }
+
+    clone() {
+        let cloneObj = new ProxyGroup(this.name, this.type, this.filter, this.rules);
+        cloneObj.proxies = this.proxies.slice();
+        cloneObj.groups = this.groups.slice();
+        cloneObj.final = this.final;
+        return cloneObj;
+    }
+
+    isBlankGroup() {
+        if (this.final || this.type === proxyGroupType.DIRECT || this.type === proxyGroupType.BLOCK) {
+            return false;
+        }
+        return this.proxies.length === 0 && this.groups.length === 0;
+    }
 }
 
 const DIRECT_GROUP = "直连";

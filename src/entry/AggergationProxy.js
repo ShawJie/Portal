@@ -1,4 +1,4 @@
-const { defaultGroups, ProxyGroup, ProxyRule, proxyGroupType } = require('./Grouper')
+const { defaultGroups, ProxyGroup, ProxyRule } = require('./Grouper')
 
 class AggregationProxy {
     constructor({customGroups}) {
@@ -38,29 +38,44 @@ class AggregationProxy {
         });
     }
 
-    refresh() {
+    refresh(proxies) {
+        if (proxies && proxies.length > 0) {
+            this.#clearProxies();
+
+            proxies.forEach((proxy) => {
+                this.addProxy(proxy);
+            });
+        }
+    }
+
+    #clearProxies() {
         this.proxies.clear();
         this.groups.forEach((group) => {
             group.clear();
         });
     }
 
-    #filterEmptyGroup(groupInst) {
-        if (groupInst.final) {
-            return true;
+    #activeGroup(originGroup) {
+        let activeGroups = originGroup.map(g => g.clone());
+
+        let dropCandidate = activeGroups.reduce((set, group) => 
+            group.isBlankGroup() ? set.add(group.name) : set
+        , new Set());
+        if (dropCandidate.size === 0) {
+            return activeGroups;
         }
 
-        if (groupInst.type === proxyGroupType.DIRECT || groupInst.type === proxyGroupType.BLOCK) {
-            return true;
-        }
-
-        return groupInst.proxies.length > 0 || groupInst.groups.length > 0;
+        activeGroups = activeGroups.filter(g => !dropCandidate.has(g.name));
+        activeGroups.forEach(activeGroup => {
+            activeGroup.groups = activeGroup.groups.filter(gName => !dropCandidate.has(gName));
+        });
+        return this.#activeGroup(activeGroups);
     }
 
     resource() {
         return {
             proxies: this.proxies,
-            groups: this.groups.filter(g => this.#filterEmptyGroup(g))
+            groups: this.#activeGroup(this.groups)
         }
     }
 
