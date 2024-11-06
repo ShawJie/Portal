@@ -80,9 +80,6 @@ class SingboxInbounds extends Array {
 
 const FORCE_INBOUNDS = [
     {
-        sniffOverrideDestination: true,
-        sniff: true,
-        endpointIndependentNat: true,
         strictRoute: true,
         autoRoute: true,
         mtu: 1500,
