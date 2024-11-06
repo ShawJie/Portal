@@ -94,15 +94,21 @@ const BLOCK_GROUP = "拦截";
 function countriesNodeGroup() {
     const regionNamesInChinese = new Intl.DisplayNames('zh-CN', { type: "region" }),
           regionNAmesInEnglish = new Intl.DisplayNames('en', { type: "region" }),
-          countryCodes = ['HK', 'UK', 'DE', 'US', 'KR', 'JP', 'TW', 'SG'];
+          countryCodes = [['HK', '香港', 'Hong Kong'], 'UK', 'DE', 'US', 'KR', 'JP', 'TW', 'SG'];
 
-    return countryCodes.map(c => [regionNamesInChinese.of(c), regionNAmesInEnglish.of(c), c])
-        .map(([regionNameChinese, regionName, counrtyCode]) => 
-            new ProxyGroup(
-                `${regionNameChinese}节点`, proxyGroupType.URL_TEST, 
-                new RegExp(`(${regionNameChinese}|${regionName}|${counrtyCode})`)
-            )
-        );
+    return countryCodes.map(c => {
+        if (Array.isArray(c)) {
+            let [code, name, fullName] = c;
+            return [name, fullName, code];
+        }
+        return [regionNamesInChinese.of(c), regionNAmesInEnglish.of(c), c];
+    })
+    .map(([regionNameChinese, regionName, counrtyCode]) => 
+        new ProxyGroup(
+            `${regionNameChinese}节点`, proxyGroupType.URL_TEST, 
+            new RegExp(`(${regionNameChinese}|${regionName}|${counrtyCode})`)
+        )
+    );
 }
 
 const countriesNode = countriesNodeGroup();
