@@ -69,7 +69,7 @@ class SingboxRoute {
     }
 }
 
-module.exports = {
+export {
     SingboxRoute,
     inheritRuleSetNames
 };

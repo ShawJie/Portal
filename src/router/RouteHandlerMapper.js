@@ -1,9 +1,13 @@
-const RequestHanderChainFactory = require("./handlers/ConvertRequestHanderFactory");
-const OutputFileHandler = require("./handlers/impl/OutputFileHander");
-const BaseConverter = require("../converter/BaseConverter");
+import RequestHanderChainFactory from "./handlers/ConvertRequestHanderFactory.js";
+import OutputFileHandler from "./handlers/impl/OutputFileHander.js";
+import BaseConverter from "../converter/BaseConverter.js";
 
-const express = require("express");
-const LoggerFactory = require("../Logger");
+import express from "express";
+import LoggerFactory from "../Logger.js";
+
+import ClashConverter from "../converter/ClashConverter.js";
+import SurfboardConverter from "../converter/SurfboardConverter.js";
+import SingboxConverter from "../converter/SingboxConverter.js";
 
 class RouteHandlerMapper {
 
@@ -47,13 +51,13 @@ class RouteHandlerMapper {
     initial() {
         this.#router = express.Router();
 
-        this.#registryHandler("/clash", require("../converter/ClashConverter"));
-        this.#registryHandler("/surfboard", require("../converter/SurfboardConverter"));
-        this.#registryHandler("/singbox", require("../converter/SingboxConverter"));
+        this.#registryHandler("/clash", new ClashConverter());
+        this.#registryHandler("/surfboard", new SurfboardConverter());
+        this.#registryHandler("/singbox", new SingboxConverter());
 
         this.#resources();
         return this.#router;
     }
 }
 
-module.exports = new RouteHandlerMapper();
+export default new RouteHandlerMapper();

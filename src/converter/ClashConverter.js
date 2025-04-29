@@ -1,9 +1,9 @@
-const yaml = require('yaml');
-const app = require("../App");
-const BaseConverter = require("./BaseConverter");
-const { proxyGroupType } = require("../entry/Grouper");
+import yaml from 'yaml';
+import app from "../App.js";
+import BaseConverter from "./BaseConverter.js";
+import { proxyGroupType } from "../entry/Grouper.js";
 
-class ClashConverter extends BaseConverter {
+export default class ClashConverter extends BaseConverter {
 
     static #autoRouter = {
         url: 'http://www.gstatic.com/generate_204',
@@ -125,5 +125,3 @@ class ClashConverter extends BaseConverter {
         });
     }
 }
-
-module.exports = new ClashConverter();

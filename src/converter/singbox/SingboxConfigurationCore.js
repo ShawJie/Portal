@@ -1,7 +1,7 @@
-const SingboxDns = require("./SingboxDns");
-const SingboxExperimental = require("./SingboxExperimental");
-const SingboxOutbounds = require("./SingboxOutbounds");
-const {SingboxRoute} = require("./SingboxRoute");
+import SingboxDns from "./SingboxDns.js";
+import SingboxExperimental from "./SingboxExperimental.js";
+import SingboxOutbounds from "./SingboxOutbounds.js";
+import {SingboxRoute} from "./SingboxRoute.js";
 
 class SingboxConfigurationCore {
     
@@ -111,4 +111,4 @@ const FORCE_INBOUNDS = [
     }
 ];
 
-module.exports = SingboxConfigurationCore;
+export default SingboxConfigurationCore;

@@ -12,4 +12,4 @@ EXPOSE 8080
 
 WORKDIR /workspace/portal
 
-ENTRYPOINT ["node", "index.js"]
+ENTRYPOINT ["npx", "run", "deploy"]

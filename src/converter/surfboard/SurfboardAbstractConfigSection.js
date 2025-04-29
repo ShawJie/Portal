@@ -29,4 +29,4 @@ class SurfboardAbstractConfigSection {
     }
 }
 
-module.exports = SurfboardAbstractConfigSection;
+export default SurfboardAbstractConfigSection;

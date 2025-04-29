@@ -1,15 +1,14 @@
-const { URL } = require('url');
-const axios = require('axios');
-const yaml = require('yaml');
-const fs = require('fs');
-const nodeCron = require('node-cron');
-const logger = require('./Logger');
-const config = require('../config.json');
+import { URL } from 'url';
+import axios from 'axios';
+import yaml from 'yaml';
+import fs from 'fs';
+import nodeCron from 'node-cron';
+import logger from './Logger.js';
 
-const express = require('express');
+import express from 'express';
 
-const AggregationProxy = require('./entry/AggergationProxy');
-const PortalConfigurationProperty = require('./config/PortalConfigurationProperty');
+import AggregationProxy from './entry/AggergationProxy.js';
+import PortalConfigurationProperty from './config/PortalConfigurationProperty.js';
 
 class AppCore {
     
@@ -153,5 +152,8 @@ class AppCore {
     }
 }
 
-const app = new AppCore(config);
-module.exports = app;
+
+const app = new AppCore(
+    JSON.parse(fs.readFileSync("config.json", "utf-8"))
+);
+export default app;

@@ -1,8 +1,8 @@
-const AccessControlHandler = require("./impl/AccessControlHandler");
-const LogRequestHandler = require("./impl/LogRequestHandler");
-const { RequestHandlerChain } = require("./ConvertRequestHandler");
+import AccessControlHandler from "./impl/AccessControlHandler.js";
+import LogRequestHandler from "./impl/LogRequestHandler.js";
+import { RequestHandlerChain } from "../ConvertRequestHandler.js";
 
-class RequestHanderChainFactory {
+export default class RequestHanderChainFactory {
 
     static #singletonAccessControl = new AccessControlHandler();
     static #singletonLogRequestHandler = new LogRequestHandler();
@@ -13,5 +13,3 @@ class RequestHanderChainFactory {
             .addHandler(RequestHanderChainFactory.#singletonLogRequestHandler);
     } 
 }
-
-module.exports = RequestHanderChainFactory

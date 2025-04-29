@@ -1,4 +1,4 @@
-const { inheritRuleSetNames } = require("./SingboxRoute");
+import { inheritRuleSetNames } from "./SingboxRoute.js";
 
 const DEFAULT_DNS_SERVERS = [
     {
@@ -91,4 +91,4 @@ class SingboxDnsFakeip {
     inet6Range = "fc00::/18";
 }
 
-module.exports = SingboxDns;
+export default SingboxDns;

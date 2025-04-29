@@ -1,4 +1,4 @@
-const SurfboardAbstractConfigSection = require("./SurfboardAbstractConfigSection");
+import SurfboardAbstractConfigSection from "./SurfboardAbstractConfigSection.js";
 
 
 const INHERIT_DNS_SERVER = ["system", "8.8.8.8", "8.8.4.4", "9.9.9.9:9953"];
@@ -17,4 +17,4 @@ class SurfboardGeneral extends SurfboardAbstractConfigSection {
     }
 }
 
-module.exports = SurfboardGeneral;
+export default SurfboardGeneral;

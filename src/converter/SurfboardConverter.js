@@ -1,9 +1,9 @@
-const app = require("../App");
-const BaseConverter = require("./BaseConverter");
-const { proxyGroupType } = require("../entry/Grouper");
-const SurfboardConfigurationCore = require("./surfboard/SurfboardConfigurationCore");
+import app from "../App.js";
+import BaseConverter from "./BaseConverter.js";
+import { proxyGroupType } from "../entry/Grouper.js";
+import SurfboardConfigurationCore from "./surfboard/SurfboardConfigurationCore.js";
 
-class SurfboardConverter extends BaseConverter {
+export default class SurfboardConverter extends BaseConverter {
 
     constructor() {
         super('surfboard.conf');
@@ -71,5 +71,3 @@ class SurfboardConverter extends BaseConverter {
         return surfboardConfigurationCore.getConfig();
     }
 }
-
-module.exports = new SurfboardConverter();

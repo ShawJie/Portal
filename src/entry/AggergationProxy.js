@@ -1,4 +1,4 @@
-const { defaultGroups, ProxyGroup, ProxyRule } = require('./Grouper')
+import { defaultGroups, ProxyGroup, ProxyRule } from './Grouper.js'
 
 class AggregationProxy {
     constructor({customGroups}) {
@@ -84,4 +84,4 @@ class AggregationProxy {
     }
 }
 
-module.exports = AggregationProxy;
+export default AggregationProxy;

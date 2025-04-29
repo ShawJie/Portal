@@ -1,4 +1,4 @@
-class BaseConverter {
+export default class BaseConverter {
     
     constructor(outputName) {
         this.outputName = outputName;
@@ -24,5 +24,3 @@ class BaseConverter {
         return str.replace(/([a-z0-9])([A-Z])/g, '$1_$2').toLowerCase();;
     }
 }
-
-module.exports = BaseConverter;

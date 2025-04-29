@@ -1,7 +1,7 @@
-const BaseConverter = require("../../../converter/BaseConverter");
-const { RequestHandler } = require("../ConvertRequestHandler");
+import BaseConverter from "../../../converter/BaseConverter.js";
+import { RequestHandler } from "../../ConvertRequestHandler.js";
 
-class OutputFileHandler extends RequestHandler {
+export default class OutputFileHandler extends RequestHandler {
 
     /**
      * 
@@ -18,14 +18,6 @@ class OutputFileHandler extends RequestHandler {
             'Content-disposition': `attachment;filename=${this.converter.getOutputName()}`
         };
         res.writeHead(200, downloadContentType);
-
-        const context = {
-            accessUser: req.accessUser,
-            query: req.query,
-            ua: req.get('user-agent')
-        }
-        res.end(await this.converter.export(context));
+        res.end(await this.converter.export(req.accessUser));
     }
 }
-
-module.exports = OutputFileHandler

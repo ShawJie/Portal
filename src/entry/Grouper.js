@@ -126,7 +126,7 @@ const defaultGroups = [
     new ProxyGroup(BLOCK_GROUP, proxyGroupType.BLOCK)
 ]
 
-module.exports = {
+export {
     ProxyGroup,
     ProxyRule,
     proxyGroupType,

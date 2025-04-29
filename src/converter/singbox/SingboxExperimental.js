@@ -17,4 +17,4 @@ class SingboxExperimental {
     }
 }
 
-module.exports = SingboxExperimental;
+export default SingboxExperimental;

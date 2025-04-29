@@ -1,9 +1,9 @@
-const app = require("../App");
-const BaseConverter = require("./BaseConverter");
-const { proxyGroupType } = require("../entry/Grouper");
-const SingboxConfigurationCore = require("./singbox/SingboxConfigurationCore");
+import app from "../App.js";
+import BaseConverter from "./BaseConverter.js";
+import { proxyGroupType } from "../entry/Grouper.js";
+import SingboxConfigurationCore from "./singbox/SingboxConfigurationCore.js";
 
-class SingboxConverter extends BaseConverter {
+export default class SingboxConverter extends BaseConverter {
 
     static #ruleTypeKeyMap = {
         "DOMAIN": "domain",
@@ -123,5 +123,3 @@ class SingboxConverter extends BaseConverter {
         return JSON.stringify(this.#convert2UnderLineObj(configObject), null, 4);
     }
 }
-
-module.exports = new SingboxConverter();

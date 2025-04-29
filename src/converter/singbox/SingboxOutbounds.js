@@ -59,4 +59,4 @@ class SingboxOutbounds extends Array {
     }
 }
 
-module.exports = SingboxOutbounds;
+export default SingboxOutbounds;

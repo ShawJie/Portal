@@ -1,4 +1,4 @@
-const SurfboardAbstractConfigSection = require("./SurfboardAbstractConfigSection");
+import SurfboardAbstractConfigSection from "./SurfboardAbstractConfigSection.js";
 
 class SurfboardProxy extends SurfboardAbstractConfigSection {
 
@@ -33,4 +33,4 @@ class SurfboardProxy extends SurfboardAbstractConfigSection {
     }
 }
 
-module.exports = SurfboardProxy;
+export default SurfboardProxy;

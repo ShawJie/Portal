@@ -1,4 +1,4 @@
-const SurfboardAbstractConfigSection = require("./SurfboardAbstractConfigSection");
+import SurfboardAbstractConfigSection from "./SurfboardAbstractConfigSection.js";
 
 class SurfboardRule extends SurfboardAbstractConfigSection {
 
@@ -15,4 +15,4 @@ class SurfboardRule extends SurfboardAbstractConfigSection {
     }
 }
 
-module.exports = SurfboardRule;
+export default SurfboardRule;

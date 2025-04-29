@@ -1,4 +1,4 @@
-class PortalConfigurationProperty {
+export default class PortalConfigurationProperty {
 
     constructor(configResource) {
         let { 
@@ -19,5 +19,3 @@ class PortalConfigurationProperty {
         this.customGroups = customGroups;
     }
 }
-
-module.exports = PortalConfigurationProperty;

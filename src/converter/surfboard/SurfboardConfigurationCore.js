@@ -1,7 +1,7 @@
-const SurfboardGeneral = require("./SurfboardGeneral");
-const SurfboardProxy = require("./SurfboardProxy");
-const SurfboardProxyGroup = require("./SurfboardProxyGroup");
-const SurfboardRule = require("./SurfboardRule");
+import SurfboardGeneral from "./SurfboardGeneral.js";
+import SurfboardProxy from "./SurfboardProxy.js";
+import SurfboardProxyGroup from "./SurfboardProxyGroup.js";
+import SurfboardRule from "./SurfboardRule.js";
 
 class SurfboardRuleObject {
 
@@ -66,4 +66,4 @@ class SurfboardConfigurationCore {
     }
 }
 
-module.exports = SurfboardConfigurationCore;
+export default SurfboardConfigurationCore;

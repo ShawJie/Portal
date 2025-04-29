@@ -1,6 +1,6 @@
-const logger = require('../Logger');
+import logger from '../Logger.js';
 
-class RequestHandlerChain {
+export class RequestHandlerChain {
 
     constructor() {
         this.handlerChain = new Array();
@@ -37,14 +37,9 @@ class RequestHandlerChain {
     }
 }
 
-class RequestHandler {
+export class RequestHandler {
 
     async handle(req, res, next) {
         throw new Error("You have to implement the method doSomething!")
     }
-}
-
-module.exports = {
-    RequestHandler, 
-    RequestHandlerChain
 }
