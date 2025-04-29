@@ -18,6 +18,12 @@ export default class OutputFileHandler extends RequestHandler {
             'Content-Disposition': `attachment; filename="${this.converter.getOutputName()}"`
         };
         res.writeHead(200, downloadContentType);
-        res.end(await this.converter.export(req.accessUser));
+
+        const context = {
+            accessUser: req.accessUser,
+            query: req.query,
+            ua: req.get('user-agent')
+        }
+        res.end(await this.converter.export(context));
     }
 }
