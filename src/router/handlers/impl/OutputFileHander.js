@@ -14,8 +14,8 @@ export default class OutputFileHandler extends RequestHandler {
     
     async handle(req, res, next) {
         const downloadContentType = {
-            'Content-Type': 'application/x-downloa', 
-            'Content-disposition': `attachment;filename=${this.converter.getOutputName()}`
+            'Content-Type': 'application/x-download', 
+            'Content-Disposition': `attachment; filename="${this.converter.getOutputName()}"`
         };
         res.writeHead(200, downloadContentType);
         res.end(await this.converter.export(req.accessUser));
