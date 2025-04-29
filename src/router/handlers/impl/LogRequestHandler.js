@@ -3,7 +3,7 @@ import LoggerFactory from "../../../Logger.js";
 
 export default class LogRequestHandler extends RequestHandler {
 
-    #logger = LoggerFactory.child({handler: "LogRequestHandler"})
+    #logger = LoggerFactory.child({module: "LogRequestHandler"})
 
     async handle(req, res, next) {
         let ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress   
