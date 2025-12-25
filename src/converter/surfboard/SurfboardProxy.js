@@ -28,6 +28,27 @@ class SurfboardProxy extends SurfboardAbstractConfigSection {
                     proxyObject.push(`skip-cert-verify=${proxy.skipCertVerify ?? false}`);
                 }
                 break;
+            case 'trojan':
+                proxyObject.push('trojan', server, port, `password=${password}`);
+                if (proxy.udp !== undefined) {
+                    proxyObject.push(`udp-relay=${proxy.udp}`);
+                }
+                if (proxy.skipCertVerify !== undefined) {
+                    proxyObject.push(`skip-cert-verify=${proxy.skipCertVerify}`);
+                }
+                if (proxy.sni) {
+                    proxyObject.push(`sni=${proxy.sni}`);
+                }
+                if (proxy.ws) {
+                    proxyObject.push(`ws=${proxy.ws}`);
+                }
+                if (proxy.wsPath) {
+                    proxyObject.push(`ws-path=${proxy.wsPath}`);
+                }
+                if (proxy.wsHeaders) {
+                    proxyObject.push(`ws-headers=${proxy.wsHeaders}`);
+                }
+                break;
         }
         this.addProperty(key, proxyObject.join(SurfboardAbstractConfigSection.COMMON_SPECTOR));
     }
