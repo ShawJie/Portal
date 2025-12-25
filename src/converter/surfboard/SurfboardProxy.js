@@ -15,7 +15,7 @@ class SurfboardProxy extends SurfboardAbstractConfigSection {
                     "ss", server, port, `encrypt-method=${proxy.cipher}`,
                     `password=${password}`, `udp-relay=${proxy.udp}`
                 );
-                if (proxy['plugin-opts']) {
+                if (proxy["plugin-opts"]) {
                     proxyObject.push(`obfs=${proxy['plugin-opts'].mode}`, `obfs-host=${proxy['plugin-opts'].host}`);
                 }
                 break;
@@ -33,8 +33,8 @@ class SurfboardProxy extends SurfboardAbstractConfigSection {
                 if (proxy.udp !== undefined) {
                     proxyObject.push(`udp-relay=${proxy.udp}`);
                 }
-                if (proxy.skipCertVerify !== undefined) {
-                    proxyObject.push(`skip-cert-verify=${proxy.skipCertVerify}`);
+                if (proxy['skip-cert-verify'] !== undefined) {
+                    proxyObject.push(`skip-cert-verify=${proxy['skip-cert-verify']}`);
                 }
                 if (proxy.sni) {
                     proxyObject.push(`sni=${proxy.sni}`);
@@ -42,11 +42,11 @@ class SurfboardProxy extends SurfboardAbstractConfigSection {
                 if (proxy.ws) {
                     proxyObject.push(`ws=${proxy.ws}`);
                 }
-                if (proxy.wsPath) {
-                    proxyObject.push(`ws-path=${proxy.wsPath}`);
+                if (proxy['ws-path']) {
+                    proxyObject.push(`ws-path=${proxy['ws-path']}`);
                 }
-                if (proxy.wsHeaders) {
-                    proxyObject.push(`ws-headers=${proxy.wsHeaders}`);
+                if (proxy['ws-headers']) {
+                    proxyObject.push(`ws-headers=${proxy['ws-headers']}`);
                 }
                 break;
         }
