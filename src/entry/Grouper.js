@@ -92,23 +92,53 @@ const DIRECT_GROUP = "直连";
 const BLOCK_GROUP = "拦截";
 
 function countriesNodeGroup() {
-    const regionNamesInChinese = new Intl.DisplayNames('zh-CN', { type: "region" }),
-          regionNAmesInEnglish = new Intl.DisplayNames('en', { type: "region" }),
-          countryCodes = [['HK', '香港', 'Hong Kong'], 'UK', 'DE', 'US', 'KR', 'JP', 'TW', 'SG'];
-
-    return countryCodes.map(c => {
-        if (Array.isArray(c)) {
-            let [code, name, fullName] = c;
-            return [name, fullName, code];
+    const regions = [
+        {
+            name: '美洲',
+            englishName: 'Americas',
+            countries: ['US', 'CA', 'BR', 'MX', 'AR', 'CL', 'CO']
+        },
+        {
+            name: '东亚',
+            englishName: 'East Asia',
+            countries: ['CN', 'JP', 'KR', 'TW', 'HK', 'MO']
+        },
+        {
+            name: '东南亚',
+            englishName: 'Southeast Asia',
+            countries: ['SG', 'TH', 'VN', 'MY', 'ID', 'PH', 'MM', 'KH']
+        },
+        {
+            name: '欧洲',
+            englishName: 'Europe',
+            countries: ['UK', 'DE', 'FR', 'NL', 'IT', 'ES', 'SE', 'NO', 
+                       'PL', 'CH', 'BE', 'AT', 'FI', 'DK', 'PT', 'IE', 'RO', 'CZ']
+        },
+        {
+            name: '西亚',
+            englishName: 'West Asia',
+            countries: ['TR', 'AE', 'IL', 'SA', 'BH', 'KW', 'QA']
         }
-        return [regionNamesInChinese.of(c), regionNAmesInEnglish.of(c), c];
-    })
-    .map(([regionNameChinese, regionName, counrtyCode]) => 
-        new ProxyGroup(
-            `${regionNameChinese}节点`, proxyGroupType.URL_TEST, 
-            new RegExp(`(${regionNameChinese}|${regionName}|${counrtyCode})`)
-        )
-    );
+    ];
+
+    const regionNamesInChinese = new Intl.DisplayNames('zh-CN', { type: "region" });
+    const regionNamesInEnglish = new Intl.DisplayNames('en', { type: "region" });
+
+    return regions.map(region => {
+        const patterns = region.countries.flatMap(code => {
+            const chineseName = regionNamesInChinese.of(code);
+            const englishName = regionNamesInEnglish.of(code);
+            return [chineseName, englishName, code];
+        });
+        
+        const regex = new RegExp(`(${patterns.join('|')})`, 'i');
+        
+        return new ProxyGroup(
+            `${region.name}节点`,
+            proxyGroupType.URL_TEST,
+            regex
+        );
+    });
 }
 
 const countriesNode = countriesNodeGroup();
