@@ -124,11 +124,26 @@ function countriesNodeGroup() {
     const regionNamesInChinese = new Intl.DisplayNames('zh-CN', { type: "region" });
     const regionNamesInEnglish = new Intl.DisplayNames('en', { type: "region" });
 
+    const specialNames = {
+        'HK': ['香港'],
+        'MO': ['澳门'],
+        'TW': ['台湾'],
+        'AE': ['阿联酋', 'UAE'],
+        'SA': ['沙特'],
+        'KR': ['Korea']
+    };
+
     return regions.map(region => {
         const patterns = region.countries.flatMap(code => {
             const chineseName = regionNamesInChinese.of(code);
             const englishName = regionNamesInEnglish.of(code);
-            return [chineseName, englishName, code];
+            const names = [chineseName, englishName, code];
+            
+            if (specialNames[code]) {
+                names.push(...specialNames[code]);
+            }
+            
+            return names;
         });
         
         const regex = new RegExp(`(${patterns.join('|')})`, 'i');
