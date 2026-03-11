@@ -84,15 +84,24 @@ class AppCore {
     }
 
     async #loadConfigFromPath() {
-        let path = this.property.basePath;
+        let paths = this.property.basePaths;
         let afterProxy = null;
-        if (path) {
-            afterProxy = await axios.get(path, {headers: {'User-Agent': 'Clash/v1.18.0'}}).then((res) => {
-                let document = yaml.parse(res.data);
-                return this.#extraClashConfig(document);
-            }).then((proxys) => {
-                return this.#postProcessProxyList(proxys);
-            });
+        if (paths && paths.length > 0) {
+            const allProxies = await Promise.all(
+                paths.map(path => 
+                    axios.get(path, {headers: {'User-Agent': 'Clash/v1.18.0'}})
+                        .then((res) => {
+                            let document = yaml.parse(res.data);
+                            return this.#extraClashConfig(document);
+                        })
+                        .catch((err) => {
+                            this.logger.error(`Failed to load config from ${path}: ${err.message}`);
+                            return [];
+                        })
+                )
+            );
+            const mergedProxies = allProxies.flat();
+            afterProxy = this.#postProcessProxyList(mergedProxies);
         } else {
             afterProxy = this.#postProcessProxyList([]);
         }
