@@ -69,39 +69,39 @@ class AppCore {
     }
 
     #postProcessProxyList(pulledProxies) {
-        let {proxys, include, exclude} = this.property;
-        let filterLogic = ({name}) => {
+        const {proxys, include, exclude} = this.property;
+        const filterLogic = ({name}) => {
             if (include) {
                 return new RegExp(include).test(name);
             }
             return !(new RegExp(exclude).test(name));
         }
 
-        let processedProxies = pulledProxies.filter(e => filterLogic(e));
+        const processedProxies = pulledProxies
+            .filter(e => filterLogic(e));
         processedProxies.push(...proxys);
 
         return processedProxies;
     }
 
     async #loadConfigFromPath() {
-        let paths = this.property.basePaths;
+        let sourcePaths = this.property.sourcePaths;
         let afterProxy = null;
-        if (paths && paths.length > 0) {
+        if (sourcePaths && sourcePaths.length > 0) {
             const allProxies = await Promise.all(
-                paths.map(path => 
-                    axios.get(path, {headers: {'User-Agent': 'Clash/v1.18.0'}})
+                sourcePaths.map(({name, url}) => 
+                    axios.get(url, {headers: {'User-Agent': 'mihomo.party/v1.9.2'}})
                         .then((res) => {
                             let document = yaml.parse(res.data);
-                            return this.#extraClashConfig(document);
+                            return this.#extraClashConfig(document, name);
                         })
                         .catch((err) => {
-                            this.logger.error(`Failed to load config from ${path}: ${err.message}`);
+                            this.logger.error(`Failed to load config from ${url}: ${err.message}`);
                             return [];
                         })
                 )
             );
-            const mergedProxies = allProxies.flat();
-            afterProxy = this.#postProcessProxyList(mergedProxies);
+            afterProxy = this.#postProcessProxyList(allProxies.flat());
         } else {
             afterProxy = this.#postProcessProxyList([]);
         }
@@ -109,11 +109,18 @@ class AppCore {
         return afterProxy;
     }
 
-    #extraClashConfig(document) {
+    #extraClashConfig(document, sourceName = null) {
         let proxys = document?.proxies;
         if (!proxys || proxys.length == 0) {
             throw new Error('load config failed, no proxies found');
         }
+        if (sourceName) {
+            proxys = proxys.map(e => {
+                e.name += `|${sourceName}`;
+                return e;
+            });
+        }
+
         return proxys;
     }
 
