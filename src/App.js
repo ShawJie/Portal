@@ -90,7 +90,7 @@ class AppCore {
         if (sourcePaths && sourcePaths.length > 0) {
             const allProxies = await Promise.all(
                 sourcePaths.map(({name, url}) => 
-                    axios.get(url, {headers: {'User-Agent': 'mihomo.party/v1.9.2'}})
+                    axios.get(url, {headers: {'User-Agent': 'Clash/v1.18.0'}})
                         .then((res) => {
                             let document = yaml.parse(res.data);
                             return this.#extraClashConfig(document, name);
