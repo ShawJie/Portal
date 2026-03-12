@@ -1,7 +1,12 @@
 {
     "host": "<DOMAIN REQUEST HOST>",
     "accessControl": false,
-    "basePath": "<YOUR CLASH SUBSCRIBE PAHT>",
+    "sourcePaths": [
+        {
+            "name": "<SOURCE NAME>",
+            "url": "<YOUR CLASH SUBSCRIBE URL>"
+        }
+    ],
     "refreshCron": "<SUBSCRIBE REFRESH CRON>",
     "proxys": [
         {

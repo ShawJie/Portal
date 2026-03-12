@@ -68,14 +68,45 @@ Other resource detail will flow at resource path. such as `{host}/clash` will ge
 
 you can run `cp config.template.json config.json` to create a config.json file, and modify it.
 
+### Multiple Source Paths Support
+
+Portal now supports loading proxies from multiple Clash subscribe sources. Each source can be named, and all proxies from that source will be tagged with the source name for easy identification.
+
+**Features:**
+- Load from multiple subscribe URLs simultaneously
+- Each source is tagged with its name (format: `proxyName|sourceName`)
+- Individual source failures won't affect other sources
+- Sources are loaded in parallel for better performance
+
+**Example:**
+```json
+"sourcePaths": [
+    {
+        "name": "Provider-A",
+        "url": "https://example.com/clash/subscribe1"
+    },
+    {
+        "name": "Provider-B",
+        "url": "https://example.com/clash/subscribe2"
+    }
+]
+```
+
+Proxies from Provider-A will be named like `HK-Node-01|Provider-A`, and from Provider-B like `US-Node-01|Provider-B`.
+
 ```json
 {
     // project domain host
     "host": "<DOMAIN REQUEST HOST>",
     // basic auth (optional, require .htpaasswd file)
     "accessControl": false,
-    // clash subscribe url as base url
-    "basePath": "<YOUR CLASH SUBSCRIBE PAHT>",
+    // multiple clash subscribe sources (each source will be tagged with its name)
+    "sourcePaths": [
+        {
+            "name": "<SOURCE NAME>",
+            "url": "<YOUR CLASH SUBSCRIBE URL>"
+        }
+    ],
     // subscribe refresh cron expression
     "refreshCron": "<SUBSCRIBE REFRESH CRON>",
     // customize proxies, clash config format
