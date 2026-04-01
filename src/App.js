@@ -96,7 +96,7 @@ class AppCore {
                             return this.#extraClashConfig(document, name);
                         })
                         .catch((err) => {
-                            this.logger.error(`Failed to load config from ${url}: ${err.message}`);
+                            logger.error(`Failed to load config from ${url}: ${err.message}`);
                             return [];
                         })
                 )
