@@ -11,17 +11,37 @@ export default class ClashConverter extends BaseConverter {
     };
 
     static #clashConfigTemplate = {
-        port: 7890,
+        mixedPort: 7890,
         socksPort: 7891,
         redirPort: 7892,
         allowLan: false,
+        bindAddress: '*',
         mode: 'rule',
         logLevel: 'silent',
         externalController: '0.0.0.0:9090',
         secret: '',
         proxies: [],
         proxyGroups: [],
-        rules: []
+        rules: [],
+        dns: {
+            defaultNameserver: ['223.5.5.5', '119.29.29.29', '114.114.114.114'],
+            enable: true,
+            enhancedMode: 'fake-ip',
+            fakeIpRange: '198.18.0.1/16',
+            fallback: ['1.1.1.1', '8.8.8.8'],
+            fallbackFilter: {
+                domain: ['+.google.com', '+.facebook.com', '+.youtube.com'],
+                geoip: true,
+                geoipCode: 'CN',
+                geosite: ['gfw'],
+                ipcidr: ['240.0.0.0/4']
+            },
+            ipv6: false,
+            nameserver: ['223.5.5.5', '119.29.29.29', '114.114.114.114'],
+            proxyServerNameserver: ['223.5.5.5', '119.29.29.29', '114.114.114.114'],
+            respectRules: true,
+            useHosts: true
+        }
     }
 
     constructor() {
