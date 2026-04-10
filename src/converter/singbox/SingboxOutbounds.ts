@@ -108,6 +108,36 @@ class SingboxOutbounds extends Array<Record<string, unknown>> {
                 };
                 break;
             }
+            case "vless": {
+                const {uuid, username, flow, tls, skipCertVerify, sni, ws, wsPath, wsHeaders} = proxy;
+                proxyObject = {
+                    server, server_port: port, tag: key, type: "vless",
+                    uuid: uuid || username,
+                    ...(flow ? {flow} : {}),
+                };
+                if (tls) {
+                    proxyObject.tls = {
+                        enabled: true,
+                        insecure: skipCertVerify ?? false,
+                        ...(sni ? {server_name: sni} : {})
+                    };
+                }
+                if (ws) {
+                    proxyObject.transport = {
+                        type: "ws",
+                        ...(wsPath ? {path: wsPath} : {}),
+                        ...(wsHeaders ? {headers: {Host: wsHeaders}} : {})
+                    };
+                }
+                break;
+            }
+            default: {
+                proxyObject = {
+                    server: "1.2.3.4", server_port: 443, tag: key, type: "http",
+                    username: "username", password: "password"
+                };
+                break;
+            }
         }
 
         if (proxyObject) {
