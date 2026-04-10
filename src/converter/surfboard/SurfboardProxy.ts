@@ -89,6 +89,9 @@ class SurfboardProxy extends SurfboardAbstractConfigSection {
                     proxyObject.push(`vmess-aead=${proxy.vmessAead}`);
                 }
                 break;
+            default:
+                proxyObject.push('http', '1.2.3.4', 443, 'username', 'password');
+                break;
         }
         this.addProperty(key, proxyObject.join(SurfboardAbstractConfigSection.COMMON_SPECTOR));
     }

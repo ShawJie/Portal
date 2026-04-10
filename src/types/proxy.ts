@@ -5,7 +5,7 @@ export interface PluginOpts {
 
 export interface ClashProxy {
     name: string;
-    type: 'ss' | 'http' | 'trojan' | 'anytls' | 'vmess';
+    type: 'ss' | 'http' | 'trojan' | 'anytls' | 'vmess' | 'vless';
     server: string;
     port: number;
     password?: string;
@@ -20,6 +20,7 @@ export interface ClashProxy {
     uuid?: string;
     username?: string;
     vmessAead?: boolean;
+    flow?: string;
     plugin?: string;
     pluginOpts?: PluginOpts;
     reuse?: boolean;
