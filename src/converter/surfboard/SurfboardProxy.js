@@ -49,6 +49,18 @@ class SurfboardProxy extends SurfboardAbstractConfigSection {
                     proxyObject.push(`ws-headers=${proxy['ws-headers']}`);
                 }
                 break;
+            case 'anytls':
+                proxyObject.push('anytls', server, port, password);
+                if (proxy['skip-cert-verify'] !== undefined) {
+                    proxyObject.push(`skip-cert-verify=${proxy['skip-cert-verify']}`);
+                }
+                if (proxy.sni) {
+                    proxyObject.push(`sni=${proxy.sni}`);
+                }
+                if (proxy.reuse !== undefined) {
+                    proxyObject.push(`reuse=${proxy.reuse}`);
+                }
+                break;
         }
         this.addProperty(key, proxyObject.join(SurfboardAbstractConfigSection.COMMON_SPECTOR));
     }
