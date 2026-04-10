@@ -3,16 +3,23 @@
   "name": "gate-distribute",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
+  "main": "index.ts",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "develop": "node index.js",
-    "deploy": "node index.js"
+    "check": "tsc --noEmit",
+    "develop": "tsx index.ts",
+    "deploy": "tsx index.ts"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "devDependencies": {
+    "@types/express": "^5.0.2",
+    "@types/node": "^22.15.2",
+    "@types/node-cron": "^3.0.11",
+    "ts-node": "^10.9.2",
+    "tsx": "^4.21.0",
+    "typescript": "^5.8.3",
     "webpack": "^5.105.4",
     "webpack-cli": "^6.0.1"
   },
