@@ -66,6 +66,14 @@ class AppCore {
         }
     }
 
+    async reloadData(): Promise<void> {
+        const config = configPersistence.readConfig();
+        this.property = new PortalConfigurationProperty(config);
+        this.aggProxy = new AggregationProxy(this.property);
+        logger.info('data reloaded, rebuilding proxy aggregation...');
+        await this.getProxies(true);
+    }
+
     private scheduleCron(): void {
         if (this.cronTask) {
             this.cronTask.stop();

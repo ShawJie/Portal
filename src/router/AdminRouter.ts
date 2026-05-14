@@ -2,6 +2,7 @@ import type { Request, Response } from 'express';
 import { RequestHandler } from './RequestHandlerChain';
 import app from '../App';
 import configPersistence from '../config/ConfigPersistence';
+import { defaultGroups } from '../entry/Grouper';
 import logger from '../Logger';
 
 type HttpMethod = 'get' | 'post' | 'put' | 'delete';
@@ -86,9 +87,85 @@ class GetGroupsHandler extends RequestHandler {
     }
 }
 
+class GetBuiltinGroupsHandler extends RequestHandler {
+    async handle(_req: Request, res: Response, _next: () => Promise<void>): Promise<void> {
+        const groupNames = defaultGroups.map(g => g.name);
+        res.json(groupNames);
+    }
+}
+
 class GetCustomProxysHandler extends RequestHandler {
     async handle(_req: Request, res: Response, _next: () => Promise<void>): Promise<void> {
         res.json(configPersistence.readProxys());
+    }
+}
+
+class FetchRulesHandler extends RequestHandler {
+    async handle(req: Request, res: Response, _next: () => Promise<void>): Promise<void> {
+        const { url } = req.body as { url: string };
+        if (!url) {
+            res.status(400).json({ message: 'URL is required' });
+            return;
+        }
+
+        try {
+            const { default: axios } = await import('axios');
+            const response = await axios.get(url, { responseType: 'text' });
+            const lines = (response.data as string).split(/\r?\n/)
+                .map(line => line.trim())
+                .filter(line => line && !line.startsWith('#'));
+
+            const rules = lines.map(line => {
+                const idx = line.indexOf(',');
+                if (idx === -1) return null;
+                return { ruleType: line.substring(0, idx), keyword: line.substring(idx + 1) };
+            }).filter((r): r is { ruleType: string; keyword: string } => r !== null);
+
+            res.json(rules);
+        } catch (err) {
+            adminLogger.error('Failed to fetch rules from %s: %o', url, err);
+            res.status(500).json({ message: 'Failed to fetch rules from URL' });
+        }
+    }
+}
+
+class SaveCustomProxysHandler extends RequestHandler {
+    async handle(req: Request, res: Response, _next: () => Promise<void>): Promise<void> {
+        const proxys = req.body as unknown[];
+        if (!Array.isArray(proxys)) {
+            res.status(400).json({ message: 'Invalid proxys body, expected array' });
+            return;
+        }
+
+        try {
+            configPersistence.writeProxys(proxys as import('../types/proxy').ClashProxy[]);
+            await app.reloadData();
+            adminLogger.info('Custom proxys saved by %s', req.session.adminUser);
+            res.json({ message: 'Custom proxys saved' });
+        } catch (err) {
+            adminLogger.error('Failed to save custom proxys: %o', err);
+            res.status(500).json({ message: 'Failed to save custom proxys' });
+        }
+    }
+}
+
+class SaveGroupsHandler extends RequestHandler {
+    async handle(req: Request, res: Response, _next: () => Promise<void>): Promise<void> {
+        const groups = req.body as unknown[];
+        if (!Array.isArray(groups)) {
+            res.status(400).json({ message: 'Invalid groups body, expected array' });
+            return;
+        }
+
+        try {
+            configPersistence.writeGroups(groups as import('../types/config').CustomGroupConfig[]);
+            await app.reloadData();
+            adminLogger.info('Groups saved by %s', req.session.adminUser);
+            res.json({ message: 'Groups saved' });
+        } catch (err) {
+            adminLogger.error('Failed to save groups: %o', err);
+            res.status(500).json({ message: 'Failed to save groups' });
+        }
     }
 }
 
@@ -129,8 +206,12 @@ export default class AdminRouter {
             { path: '/api/config', method: 'get', handler: new GetConfigHandler() },
             { path: '/api/config', method: 'post', handler: new SaveConfigHandler() },
             { path: '/api/proxies', method: 'get', handler: new GetProxiesHandler() },
+            { path: '/api/builtin-groups', method: 'get', handler: new GetBuiltinGroupsHandler() },
+            { path: '/api/fetch-rules', method: 'post', handler: new FetchRulesHandler() },
             { path: '/api/groups', method: 'get', handler: new GetGroupsHandler() },
+            { path: '/api/groups', method: 'post', handler: new SaveGroupsHandler() },
             { path: '/api/custom-proxys', method: 'get', handler: new GetCustomProxysHandler() },
+            { path: '/api/custom-proxys', method: 'post', handler: new SaveCustomProxysHandler() },
         ];
     }
 }

@@ -34,6 +34,25 @@ export interface ProxyNode {
     port: number;
 }
 
+export interface CustomProxy {
+    name: string;
+    server: string;
+    [key: string]: unknown;
+}
+
+export interface ProxyRule {
+    ruleType: string;
+    keyword: string;
+}
+
+export interface CustomGroup {
+    groupName: string;
+    type: string;
+    attachGroup?: string[];
+    proxys?: string;
+    rules?: ProxyRule[];
+}
+
 export const api = {
     login: (username: string, password: string) =>
         request<SessionInfo>('/login', {
@@ -60,8 +79,29 @@ export const api = {
         request<ProxyNode[]>('/proxies'),
 
     getGroups: () =>
-        request<unknown[]>('/groups'),
+        request<CustomGroup[]>('/groups'),
+
+    getBuiltinGroups: () =>
+        request<string[]>('/builtin-groups'),
+
+    fetchRules: (url: string) =>
+        request<ProxyRule[]>('/fetch-rules', {
+            method: 'POST',
+            body: JSON.stringify({ url }),
+        }),
+
+    saveGroups: (groups: CustomGroup[]) =>
+        request<{ message: string }>('/groups', {
+            method: 'POST',
+            body: JSON.stringify(groups),
+        }),
 
     getCustomProxys: () =>
-        request<unknown[]>('/custom-proxys'),
+        request<CustomProxy[]>('/custom-proxys'),
+
+    saveCustomProxys: (proxys: CustomProxy[]) =>
+        request<{ message: string }>('/custom-proxys', {
+            method: 'POST',
+            body: JSON.stringify(proxys),
+        }),
 };
