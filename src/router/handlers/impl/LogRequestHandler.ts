@@ -1,5 +1,5 @@
 import type { Request, Response } from 'express';
-import { RequestHandler } from "../../ConvertRequestHandler";
+import { RequestHandler } from "../../RequestHandlerChain";
 import LoggerFactory from "../../../Logger";
 
 export default class LogRequestHandler extends RequestHandler {

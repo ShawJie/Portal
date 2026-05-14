@@ -6,6 +6,7 @@ import nodeCron from 'node-cron';
 import logger from './Logger';
 
 import express, { type Express } from 'express';
+import session from 'express-session';
 
 import AggregationProxy from './entry/AggergationProxy';
 import PortalConfigurationProperty from './config/PortalConfigurationProperty';
@@ -45,6 +46,10 @@ class AppCore {
         this.server = null;
     }
 
+    getProperty(): PortalConfigurationProperty {
+        return this.property;
+    }
+
     getDomainHost(): string {
         return this.property.host;
     }
@@ -81,6 +86,15 @@ class AppCore {
         }
         logger.warn('user not found in access control map, %s', username);
         return false;
+    }
+
+    isAdminUser(username: string): boolean {
+        return this.property.adminUsers.includes(username);
+    }
+
+    getLoadedProxies(): ClashProxy[] {
+        const resource = this.aggProxy.resource();
+        return Array.from(resource.proxies.values());
     }
 
     private isLoaded(): boolean {
@@ -183,6 +197,14 @@ class AppCore {
         if (!this.server) {
             this.server = express();
         }
+
+        this.server.use(express.json());
+        this.server.use(session({
+            secret: 'portal-session-secret',
+            resave: false,
+            saveUninitialized: false,
+            cookie: { maxAge: 24 * 60 * 60 * 1000 }
+        }));
 
         if (this.property.logLevel !== 'info') {
             logger.level = this.property.logLevel;
