@@ -2,13 +2,15 @@ import { URL } from 'url';
 import axios from 'axios';
 import yaml from 'yaml';
 import fs from 'fs';
-import nodeCron from 'node-cron';
+import nodeCron, { type ScheduledTask } from 'node-cron';
 import logger from './Logger';
 
 import express, { type Express } from 'express';
+import session from 'express-session';
 
 import AggregationProxy from './entry/AggergationProxy';
 import PortalConfigurationProperty from './config/PortalConfigurationProperty';
+import configPersistence from './config/ConfigPersistence';
 import type { PortalConfig } from './types/config';
 import type { ClashProxy, PluginOpts } from './types/proxy';
 import type { AggregatedResource } from './types/group';
@@ -31,6 +33,7 @@ class AppCore {
     private accessControlMap: Map<string, string> | null;
     private port: number;
     private server: Express | null;
+    private cronTask: ScheduledTask | null = null;
 
     constructor(addOnConfig: PortalConfig, port: number = 8080) {
         const property = new PortalConfigurationProperty(addOnConfig);
@@ -42,6 +45,46 @@ class AppCore {
 
         this.port = port;
         this.server = null;
+    }
+
+    getProperty(): PortalConfigurationProperty {
+        return this.property;
+    }
+
+    async reloadProperty(config: PortalConfig, refreshProxy: boolean = false): Promise<void> {
+        const oldCron = this.property.refreshCron;
+        this.property = new PortalConfigurationProperty(config);
+        logger.info('property reloaded from updated config');
+
+        if (refreshProxy) {
+            logger.info('refreshing proxies after config reload...');
+            await this.getProxies(true);
+        }
+
+        if (oldCron !== this.property.refreshCron) {
+            this.scheduleCron();
+        }
+    }
+
+    async reloadData(): Promise<void> {
+        const config = configPersistence.readConfig();
+        this.property = new PortalConfigurationProperty(config);
+        this.aggProxy = new AggregationProxy(this.property);
+        logger.info('data reloaded, rebuilding proxy aggregation...');
+        await this.getProxies(true);
+    }
+
+    private scheduleCron(): void {
+        if (this.cronTask) {
+            this.cronTask.stop();
+            logger.info('previous cron task stopped');
+        }
+        this.cronTask = nodeCron.schedule(this.property.refreshCron, async () => {
+            logger.info('refreshing proxy list...');
+            await this.getProxies(true);
+            logger.info('refreshing proxy list finished');
+        });
+        logger.info('cron task scheduled: %s', this.property.refreshCron);
     }
 
     getDomainHost(): string {
@@ -80,6 +123,15 @@ class AppCore {
         }
         logger.warn('user not found in access control map, %s', username);
         return false;
+    }
+
+    isAdminUser(username: string): boolean {
+        return this.property.adminUsers.includes(username);
+    }
+
+    getLoadedProxies(): ClashProxy[] {
+        const resource = this.aggProxy.resource();
+        return Array.from(resource.proxies.values());
     }
 
     private isLoaded(): boolean {
@@ -183,6 +235,14 @@ class AppCore {
             this.server = express();
         }
 
+        this.server.use(express.json());
+        this.server.use(session({
+            secret: 'portal-session-secret',
+            resave: false,
+            saveUninitialized: false,
+            cookie: { maxAge: 24 * 60 * 60 * 1000 }
+        }));
+
         if (this.property.logLevel !== 'info') {
             logger.level = this.property.logLevel;
         }
@@ -204,18 +264,12 @@ class AppCore {
             }
         });
 
-        nodeCron.schedule(this.property.refreshCron, async () => {
-            logger.info('refreshing proxy list...');
-            await this.getProxies(true);
-            logger.info('refreshing proxy list finished');
-        });
+        this.scheduleCron();
 
         return this.server;
     }
 }
 
 
-const app = new AppCore(
-    JSON.parse(fs.readFileSync("config.json", "utf-8")) as PortalConfig
-);
+const app = new AppCore(configPersistence.readConfig());
 export default app;

@@ -1,6 +1,6 @@
 import type { Request, Response } from 'express';
 import BaseConverter from "../../../converter/BaseConverter";
-import { RequestHandler } from "../../ConvertRequestHandler";
+import { RequestHandler } from "../../RequestHandlerChain";
 import type { ConvertContext } from "../../../types/context";
 
 export default class OutputFileHandler extends RequestHandler {

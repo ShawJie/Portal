@@ -1,5 +1,5 @@
 import type { Request, Response } from 'express';
-import { RequestHandler } from "../../ConvertRequestHandler";
+import { RequestHandler } from "../../RequestHandlerChain";
 import LoggerFactory from "../../../Logger";
 
 export default class LogRequestHandler extends RequestHandler {
@@ -8,7 +8,8 @@ export default class LogRequestHandler extends RequestHandler {
 
     async handle(req: Request, res: Response, next: () => Promise<void>): Promise<void> {
         const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
-        this.logger.info(`Request info: '${req.url}', Client address: '${ip}', User: '${req.accessUser?.username}'`);
+        const user = req.accessUser?.username || req.session?.adminUser || 'Unkonw';
+        this.logger.info(`Request info: '${req.url}', Client address: '${ip}', User: '${user}'`);
         next();
     }
 }

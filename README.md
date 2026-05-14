@@ -94,11 +94,13 @@ Portal now supports loading proxies from multiple Clash subscribe sources. Each 
 
 Proxies from Provider-A will be named like `HK-Node-01|Provider-A`, and from Provider-B like `US-Node-01|Provider-B`.
 
+### config.json
+
 ```json
 {
     // project domain host
     "host": "<DOMAIN REQUEST HOST>",
-    // basic auth (optional, require .htpaasswd file)
+    // basic auth (optional, require .htpasswd file)
     "accessControl": false,
     // multiple clash subscribe sources (each source will be tagged with its name)
     "sourcePaths": [
@@ -109,50 +111,47 @@ Proxies from Provider-A will be named like `HK-Node-01|Provider-A`, and from Pro
     ],
     // subscribe refresh cron expression
     "refreshCron": "<SUBSCRIBE REFRESH CRON>",
-    // customize proxies, clash config format
-    "proxys": [
-        {
-            // proxy name
-            "name": "<CUSTOM PROXY NAME>",
-            // proxy server
-            "server": "<PROXY SERVER>",
-            // proxy server port
-            "port": 1234,
-            // proxy type
-            "type": "<PROXY TYPE>"
-            // other proxy config...
-        }
-    ],
     // include proxy with regex
     "include": null,
     // exclude proxy with regex
     "exclude": "<EXCLUDE NODE WITH REGEX>",
-    // custom proxy groups, clash group format, and group within any rules
-    "customGroups": [
-        {
-            "groupName": "<CUSTOM GROUP NAME>",
-            // type support select, url-test
-            "type": "<GROUP ACTON TYPE>",
-            "attachGroup": [
-                "<GROUP THAT YOU WANT ATTACH>"
-            ],
-            // target proxies in groups
-            "proxys": "<MATCHED PROXY NAME WITH REGEX>",
-            "rules": [
-                {
-                    "ruleType": "DOMAIN",
-                    "keyword": "chat.openai.com.cdn.cloudflare.net"
-                },
-                {
-                    "ruleType": "DOMAIN-SUFFIX",
-                    "keyword": "openai.com"
-                },
-                {
-                    "ruleType": "DOMAIN-KEYWORD",
-                    "keyword": "oaistatic"
-                }
-            ]
-        }
-    ]
+    // admin users (must exist in .htpasswd)
+    "adminUsers": ["<ADMIN USERNAME>"]
 }
+```
+
+### data/proxys.json
+
+Custom proxy nodes in clash config format. Stored separately from `config.json`.
+
+```json
+[
+    {
+        "name": "<CUSTOM PROXY NAME>",
+        "server": "<PROXY SERVER>",
+        "port": 1234,
+        "type": "<PROXY TYPE>"
+    }
+]
+```
+
+### data/groups.json
+
+Custom proxy groups with routing rules. Stored separately from `config.json`.
+
+```json
+[
+    {
+        "groupName": "<CUSTOM GROUP NAME>",
+        "type": "<GROUP ACTION TYPE>",
+        "attachGroup": ["<GROUP THAT YOU WANT ATTACH>"],
+        "proxys": "<MATCHED PROXY NAME WITH REGEX>",
+        "rules": [
+            {
+                "ruleType": "DOMAIN",
+                "keyword": "example.com"
+            }
+        ]
+    }
+]
 ```
