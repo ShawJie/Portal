@@ -1,5 +1,3 @@
-import type { ClashProxy } from './proxy';
-
 export interface SourcePathConfig {
     name: string;
     url: string;
@@ -24,8 +22,7 @@ export interface PortalConfig {
     sourcePaths?: SourcePathConfig[];
     logLevel?: string;
     refreshCron?: string;
-    proxys?: ClashProxy[];
     include?: string;
     exclude?: string;
-    customGroups?: CustomGroupConfig[];
+    adminUsers?: string[];
 }

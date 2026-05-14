@@ -9,6 +9,7 @@ import express, { type Express } from 'express';
 
 import AggregationProxy from './entry/AggergationProxy';
 import PortalConfigurationProperty from './config/PortalConfigurationProperty';
+import configPersistence from './config/ConfigPersistence';
 import type { PortalConfig } from './types/config';
 import type { ClashProxy, PluginOpts } from './types/proxy';
 import type { AggregatedResource } from './types/group';
@@ -215,7 +216,5 @@ class AppCore {
 }
 
 
-const app = new AppCore(
-    JSON.parse(fs.readFileSync("config.json", "utf-8")) as PortalConfig
-);
+const app = new AppCore(configPersistence.readConfig());
 export default app;

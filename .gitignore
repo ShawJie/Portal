@@ -134,4 +134,5 @@ dist
 
 # Shaw/Portal
 config.json
+data/
 .htpasswd
