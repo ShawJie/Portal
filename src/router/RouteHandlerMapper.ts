@@ -7,7 +7,6 @@ import LoggerFactory from "../Logger";
 
 import ClashConverter from "../converter/ClashConverter";
 import SurfboardConverter from "../converter/SurfboardConverter";
-import SingboxConverter from "../converter/SingboxConverter";
 import { RequestHandlerChain } from "./ConvertRequestHandler";
 
 class RouteHandlerMapper {
@@ -49,8 +48,6 @@ class RouteHandlerMapper {
 
         this.registryHandler("/clash", new ClashConverter());
         this.registryHandler("/surfboard", new SurfboardConverter());
-        this.registryHandler("/singbox", new SingboxConverter());
-
         this.resources();
         return this.router;
     }
