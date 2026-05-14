@@ -1,0 +1,231 @@
+import { useEffect, useState, useCallback } from 'react';
+import {
+    Card,
+    Input,
+    Button,
+    Title2,
+    Subtitle2,
+    Switch,
+    makeStyles,
+    tokens,
+    Spinner,
+    Toolbar,
+    ToolbarButton,
+    Field,
+    Textarea,
+} from '@fluentui/react-components';
+import { SignOutRegular } from '@fluentui/react-icons';
+import { api, type PortalConfig } from '../api';
+
+const useStyles = makeStyles({
+    page: {
+        minHeight: '100vh',
+        backgroundColor: tokens.colorNeutralBackground2,
+    },
+    header: {
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        padding: '12px 24px',
+        backgroundColor: tokens.colorNeutralBackground1,
+        borderBottom: `1px solid ${tokens.colorNeutralStroke1}`,
+    },
+    headerLeft: {
+        display: 'flex',
+        alignItems: 'center',
+        gap: '12px',
+    },
+    content: {
+        maxWidth: '800px',
+        margin: '24px auto',
+        padding: '0 24px',
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '20px',
+    },
+    card: {
+        padding: '24px',
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '16px',
+    },
+    sourceItem: {
+        display: 'flex',
+        gap: '12px',
+        alignItems: 'end',
+    },
+    loading: {
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+        minHeight: '100vh',
+    },
+});
+
+interface ConfigPageProps {
+    username: string;
+    onLogout: () => void;
+}
+
+export default function ConfigPage({ username, onLogout }: ConfigPageProps) {
+    const styles = useStyles();
+    const [config, setConfig] = useState<PortalConfig | null>(null);
+    const [loading, setLoading] = useState(true);
+
+    const loadConfig = useCallback(async () => {
+        setLoading(true);
+        try {
+            const data = await api.getConfig();
+            setConfig(data);
+        } catch (err) {
+            console.error('Failed to load config:', err);
+        } finally {
+            setLoading(false);
+        }
+    }, []);
+
+    useEffect(() => {
+        loadConfig();
+    }, [loadConfig]);
+
+    const handleLogout = async () => {
+        try {
+            await api.logout();
+        } catch { /* ignore */ }
+        onLogout();
+    };
+
+    const updateField = <K extends keyof PortalConfig>(key: K, value: PortalConfig[K]) => {
+        setConfig(prev => prev ? { ...prev, [key]: value } : prev);
+    };
+
+    const updateSourcePath = (index: number, field: 'name' | 'url', value: string) => {
+        setConfig(prev => {
+            if (!prev) return prev;
+            const paths = [...(prev.sourcePaths || [])];
+            paths[index] = { ...paths[index], [field]: value };
+            return { ...prev, sourcePaths: paths };
+        });
+    };
+
+    const addSourcePath = () => {
+        setConfig(prev => {
+            if (!prev) return prev;
+            return { ...prev, sourcePaths: [...(prev.sourcePaths || []), { name: '', url: '' }] };
+        });
+    };
+
+    const removeSourcePath = (index: number) => {
+        setConfig(prev => {
+            if (!prev) return prev;
+            const paths = [...(prev.sourcePaths || [])];
+            paths.splice(index, 1);
+            return { ...prev, sourcePaths: paths };
+        });
+    };
+
+    if (loading || !config) {
+        return (
+            <div className={styles.loading}>
+                <Spinner size="large" label="Loading configuration..." />
+            </div>
+        );
+    }
+
+    return (
+        <div className={styles.page}>
+            <div className={styles.header}>
+                <div className={styles.headerLeft}>
+                    <Title2>Portal</Title2>
+                    <Subtitle2>Configuration</Subtitle2>
+                </div>
+                <Toolbar>
+                    <Subtitle2>{username}</Subtitle2>
+                    <ToolbarButton
+                        icon={<SignOutRegular />}
+                        onClick={handleLogout}
+                    >
+                        Sign out
+                    </ToolbarButton>
+                </Toolbar>
+            </div>
+
+            <div className={styles.content}>
+                <Card className={styles.card}>
+                    <Subtitle2>General</Subtitle2>
+                    <Field label="Host">
+                        <Input
+                            value={config.host || ''}
+                            onChange={(_, data) => updateField('host', data.value)}
+                        />
+                    </Field>
+                    <Field label="Log Level">
+                        <Input
+                            value={config.logLevel || 'info'}
+                            onChange={(_, data) => updateField('logLevel', data.value)}
+                        />
+                    </Field>
+                    <Field label="Refresh Cron">
+                        <Input
+                            value={config.refreshCron || ''}
+                            onChange={(_, data) => updateField('refreshCron', data.value)}
+                        />
+                    </Field>
+                    <Field label="Access Control">
+                        <Switch
+                            checked={config.accessControl || false}
+                            onChange={(_, data) => updateField('accessControl', data.checked)}
+                        />
+                    </Field>
+                </Card>
+
+                <Card className={styles.card}>
+                    <Subtitle2>Source Paths</Subtitle2>
+                    {(config.sourcePaths || []).map((sp, i) => (
+                        <div key={i} className={styles.sourceItem}>
+                            <Field label="Name" style={{ flex: 1 }}>
+                                <Input
+                                    value={sp.name}
+                                    onChange={(_, data) => updateSourcePath(i, 'name', data.value)}
+                                />
+                            </Field>
+                            <Field label="URL" style={{ flex: 2 }}>
+                                <Input
+                                    value={sp.url}
+                                    onChange={(_, data) => updateSourcePath(i, 'url', data.value)}
+                                />
+                            </Field>
+                            <Button
+                                appearance="subtle"
+                                onClick={() => removeSourcePath(i)}
+                            >
+                                Remove
+                            </Button>
+                        </div>
+                    ))}
+                    <Button appearance="outline" onClick={addSourcePath}>
+                        Add Source
+                    </Button>
+                </Card>
+
+                <Card className={styles.card}>
+                    <Subtitle2>Proxy Filter</Subtitle2>
+                    <Field label="Include (regex)">
+                        <Textarea
+                            value={config.include || ''}
+                            onChange={(_, data) => updateField('include', data.value || undefined)}
+                            resize="vertical"
+                        />
+                    </Field>
+                    <Field label="Exclude (regex)">
+                        <Textarea
+                            value={config.exclude || ''}
+                            onChange={(_, data) => updateField('exclude', data.value || undefined)}
+                            resize="vertical"
+                        />
+                    </Field>
+                </Card>
+            </div>
+        </div>
+    );
+}
