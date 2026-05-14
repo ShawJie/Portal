@@ -16,8 +16,17 @@ import {
     ToolbarButton,
     Field,
     Textarea,
+    Dialog,
+    DialogSurface,
+    DialogTitle,
+    DialogBody,
+    DialogContent,
+    DialogActions,
+    DialogTrigger,
+    MessageBar,
+    MessageBarBody,
 } from '@fluentui/react-components';
-import { SignOutRegular, DismissCircleRegular } from '@fluentui/react-icons';
+import { SignOutRegular, DismissCircleRegular, CheckmarkRegular } from '@fluentui/react-icons';
 import { api, type PortalConfig, type ProxyNode } from '../api';
 
 const useStyles = makeStyles({
@@ -101,6 +110,9 @@ export default function ConfigPage({ username, onLogout }: ConfigPageProps) {
     const [config, setConfig] = useState<PortalConfig | null>(null);
     const [proxies, setProxies] = useState<ProxyNode[]>([]);
     const [loading, setLoading] = useState(true);
+    const [saving, setSaving] = useState(false);
+    const [confirmOpen, setConfirmOpen] = useState(false);
+    const [saveResult, setSaveResult] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
 
     const loadConfig = useCallback(async () => {
         setLoading(true);
@@ -121,6 +133,22 @@ export default function ConfigPage({ username, onLogout }: ConfigPageProps) {
     useEffect(() => {
         loadConfig();
     }, [loadConfig]);
+
+    const handleApply = async () => {
+        if (!config) return;
+        setSaving(true);
+        setSaveResult(null);
+        setConfirmOpen(false);
+        try {
+            const result = await api.saveConfig(config);
+            setSaveResult({ type: 'success', message: result.refreshed ? 'Config saved, proxies refreshed.' : 'Config saved.' });
+            await loadConfig();
+        } catch (err) {
+            setSaveResult({ type: 'error', message: err instanceof Error ? err.message : 'Save failed' });
+        } finally {
+            setSaving(false);
+        }
+    };
 
     const handleLogout = async () => {
         try {
@@ -298,6 +326,39 @@ export default function ConfigPage({ username, onLogout }: ConfigPageProps) {
                         />
                     </Field>
                 </Card>
+
+                {saveResult && (
+                    <MessageBar intent={saveResult.type === 'success' ? 'success' : 'error'}>
+                        <MessageBarBody>{saveResult.message}</MessageBarBody>
+                    </MessageBar>
+                )}
+
+                <Dialog open={confirmOpen} onOpenChange={(_, data) => setConfirmOpen(data.open)}>
+                    <DialogSurface>
+                        <DialogBody>
+                            <DialogTitle>Apply Changes</DialogTitle>
+                            <DialogContent>
+                                Are you sure you want to save the configuration? If proxy filter or source paths changed, proxies will be refreshed.
+                            </DialogContent>
+                            <DialogActions>
+                                <DialogTrigger disableButtonEnhancement>
+                                    <Button appearance="secondary">Cancel</Button>
+                                </DialogTrigger>
+                                <Button appearance="primary" onClick={handleApply}>Confirm</Button>
+                            </DialogActions>
+                        </DialogBody>
+                    </DialogSurface>
+                </Dialog>
+
+                <Button
+                    appearance="primary"
+                    icon={<CheckmarkRegular />}
+                    size="large"
+                    onClick={() => setConfirmOpen(true)}
+                    disabled={saving}
+                >
+                    {saving ? 'Applying...' : 'Apply Changes'}
+                </Button>
             </div>
         </div>
     );

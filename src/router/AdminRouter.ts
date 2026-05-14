@@ -92,6 +92,34 @@ class GetCustomProxysHandler extends RequestHandler {
     }
 }
 
+class SaveConfigHandler extends RequestHandler {
+    async handle(req: Request, res: Response, _next: () => Promise<void>): Promise<void> {
+        const newConfig = req.body as Record<string, unknown>;
+        if (!newConfig || typeof newConfig !== 'object') {
+            res.status(400).json({ message: 'Invalid config body' });
+            return;
+        }
+
+        try {
+            const oldConfig = configPersistence.readConfig();
+            configPersistence.writeConfig(newConfig as import('../types/config').PortalConfig);
+
+            const needRefresh =
+                oldConfig.exclude !== newConfig.exclude ||
+                oldConfig.include !== newConfig.include ||
+                JSON.stringify(oldConfig.sourcePaths) !== JSON.stringify(newConfig.sourcePaths);
+
+            await app.reloadProperty(newConfig as import('../types/config').PortalConfig, needRefresh);
+
+            adminLogger.info('Config saved by %s, refresh: %s', req.session.adminUser, needRefresh);
+            res.json({ message: 'Config saved', refreshed: needRefresh });
+        } catch (err) {
+            adminLogger.error('Failed to save config: %o', err);
+            res.status(500).json({ message: 'Failed to save config' });
+        }
+    }
+}
+
 export default class AdminRouter {
     getRoutes(): AdminRoute[] {
         return [
@@ -99,6 +127,7 @@ export default class AdminRouter {
             { path: '/api/logout', method: 'post', handler: new LogoutHandler() },
             { path: '/api/session', method: 'get', handler: new SessionHandler() },
             { path: '/api/config', method: 'get', handler: new GetConfigHandler() },
+            { path: '/api/config', method: 'post', handler: new SaveConfigHandler() },
             { path: '/api/proxies', method: 'get', handler: new GetProxiesHandler() },
             { path: '/api/groups', method: 'get', handler: new GetGroupsHandler() },
             { path: '/api/custom-proxys', method: 'get', handler: new GetCustomProxysHandler() },

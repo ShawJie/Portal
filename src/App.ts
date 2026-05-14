@@ -2,7 +2,7 @@ import { URL } from 'url';
 import axios from 'axios';
 import yaml from 'yaml';
 import fs from 'fs';
-import nodeCron from 'node-cron';
+import nodeCron, { type ScheduledTask } from 'node-cron';
 import logger from './Logger';
 
 import express, { type Express } from 'express';
@@ -33,6 +33,7 @@ class AppCore {
     private accessControlMap: Map<string, string> | null;
     private port: number;
     private server: Express | null;
+    private cronTask: ScheduledTask | null = null;
 
     constructor(addOnConfig: PortalConfig, port: number = 8080) {
         const property = new PortalConfigurationProperty(addOnConfig);
@@ -48,6 +49,34 @@ class AppCore {
 
     getProperty(): PortalConfigurationProperty {
         return this.property;
+    }
+
+    async reloadProperty(config: PortalConfig, refreshProxy: boolean = false): Promise<void> {
+        const oldCron = this.property.refreshCron;
+        this.property = new PortalConfigurationProperty(config);
+        logger.info('property reloaded from updated config');
+
+        if (refreshProxy) {
+            logger.info('refreshing proxies after config reload...');
+            await this.getProxies(true);
+        }
+
+        if (oldCron !== this.property.refreshCron) {
+            this.scheduleCron();
+        }
+    }
+
+    private scheduleCron(): void {
+        if (this.cronTask) {
+            this.cronTask.stop();
+            logger.info('previous cron task stopped');
+        }
+        this.cronTask = nodeCron.schedule(this.property.refreshCron, async () => {
+            logger.info('refreshing proxy list...');
+            await this.getProxies(true);
+            logger.info('refreshing proxy list finished');
+        });
+        logger.info('cron task scheduled: %s', this.property.refreshCron);
     }
 
     getDomainHost(): string {
@@ -227,11 +256,7 @@ class AppCore {
             }
         });
 
-        nodeCron.schedule(this.property.refreshCron, async () => {
-            logger.info('refreshing proxy list...');
-            await this.getProxies(true);
-            logger.info('refreshing proxy list finished');
-        });
+        this.scheduleCron();
 
         return this.server;
     }

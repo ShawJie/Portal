@@ -50,6 +50,12 @@ export const api = {
     getConfig: () =>
         request<PortalConfig>('/config'),
 
+    saveConfig: (config: PortalConfig) =>
+        request<{ message: string; refreshed: boolean }>('/config', {
+            method: 'POST',
+            body: JSON.stringify(config),
+        }),
+
     getProxies: () =>
         request<ProxyNode[]>('/proxies'),
 
