@@ -27,6 +27,13 @@ export interface PortalConfig {
     adminUsers?: string[];
 }
 
+export interface ProxyNode {
+    name: string;
+    type: string;
+    server: string;
+    port: number;
+}
+
 export const api = {
     login: (username: string, password: string) =>
         request<SessionInfo>('/login', {
@@ -44,7 +51,7 @@ export const api = {
         request<PortalConfig>('/config'),
 
     getProxies: () =>
-        request<unknown[]>('/proxies'),
+        request<ProxyNode[]>('/proxies'),
 
     getGroups: () =>
         request<unknown[]>('/groups'),

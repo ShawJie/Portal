@@ -5,6 +5,9 @@ import {
     Button,
     Title2,
     Subtitle2,
+    Body1,
+    Caption1,
+    Badge,
     Switch,
     makeStyles,
     tokens,
@@ -14,8 +17,8 @@ import {
     Field,
     Textarea,
 } from '@fluentui/react-components';
-import { SignOutRegular } from '@fluentui/react-icons';
-import { api, type PortalConfig } from '../api';
+import { SignOutRegular, DismissCircleRegular } from '@fluentui/react-icons';
+import { api, type PortalConfig, type ProxyNode } from '../api';
 
 const useStyles = makeStyles({
     page: {
@@ -60,6 +63,32 @@ const useStyles = makeStyles({
         alignItems: 'center',
         minHeight: '100vh',
     },
+    proxyItem: {
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        padding: '8px 12px',
+        borderRadius: tokens.borderRadiusMedium,
+        backgroundColor: tokens.colorNeutralBackground1,
+        border: `1px solid ${tokens.colorNeutralStroke2}`,
+    },
+    proxyInfo: {
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '2px',
+    },
+    proxyMeta: {
+        display: 'flex',
+        alignItems: 'center',
+        gap: '8px',
+    },
+    proxyList: {
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '8px',
+        maxHeight: '400px',
+        overflowY: 'auto',
+    },
 });
 
 interface ConfigPageProps {
@@ -70,15 +99,20 @@ interface ConfigPageProps {
 export default function ConfigPage({ username, onLogout }: ConfigPageProps) {
     const styles = useStyles();
     const [config, setConfig] = useState<PortalConfig | null>(null);
+    const [proxies, setProxies] = useState<ProxyNode[]>([]);
     const [loading, setLoading] = useState(true);
 
     const loadConfig = useCallback(async () => {
         setLoading(true);
         try {
-            const data = await api.getConfig();
-            setConfig(data);
+            const [configData, proxiesData] = await Promise.all([
+                api.getConfig(),
+                api.getProxies(),
+            ]);
+            setConfig(configData);
+            setProxies(proxiesData);
         } catch (err) {
-            console.error('Failed to load config:', err);
+            console.error('Failed to load data:', err);
         } finally {
             setLoading(false);
         }
@@ -122,6 +156,19 @@ export default function ConfigPage({ username, onLogout }: ConfigPageProps) {
             paths.splice(index, 1);
             return { ...prev, sourcePaths: paths };
         });
+    };
+
+    const escapeRegex = (str: string) => str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
+    const excludeProxy = (nodeName: string) => {
+        setConfig(prev => {
+            if (!prev) return prev;
+            const escaped = escapeRegex(nodeName);
+            const current = prev.exclude || '';
+            const updated = current ? `${current}|${escaped}` : escaped;
+            return { ...prev, exclude: updated };
+        });
+        setProxies(prev => prev.filter(p => p.name !== nodeName));
     };
 
     if (loading || !config) {
@@ -206,6 +253,32 @@ export default function ConfigPage({ username, onLogout }: ConfigPageProps) {
                     <Button appearance="outline" onClick={addSourcePath}>
                         Add Source
                     </Button>
+                </Card>
+
+                <Card className={styles.card}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <Subtitle2>Proxy Nodes</Subtitle2>
+                        <Caption1>{proxies.length} nodes</Caption1>
+                    </div>
+                    <div className={styles.proxyList}>
+                        {proxies.map((proxy) => (
+                            <div key={proxy.name} className={styles.proxyItem}>
+                                <div className={styles.proxyInfo}>
+                                    <Body1>{proxy.name}</Body1>
+                                    <div className={styles.proxyMeta}>
+                                        <Badge appearance="outline" size="small">{proxy.type}</Badge>
+                                        <Caption1>{proxy.server}:{proxy.port}</Caption1>
+                                    </div>
+                                </div>
+                                <Button
+                                    appearance="subtle"
+                                    icon={<DismissCircleRegular />}
+                                    size="small"
+                                    onClick={() => excludeProxy(proxy.name)}
+                                />
+                            </div>
+                        ))}
+                    </div>
                 </Card>
 
                 <Card className={styles.card}>
