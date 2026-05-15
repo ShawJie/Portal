@@ -38,7 +38,7 @@ export default class SurfboardConverter extends BaseConverter {
     }
 
     private generateAutoRefreshComment(userinfo?: AccessUser): string {
-        return `#!MANAGED-CONFIG ${app.getDomainHostWithAuth(userinfo)} interval=64800 strict=false`;
+        return `#!MANAGED-CONFIG ${app.getDomainHostWithAuth(userinfo)}/surfboard interval=64800 strict=false`;
     }
 
     private groupWrapperProvider(group: ProxyGroup): SurfboardGroupWrapper {
